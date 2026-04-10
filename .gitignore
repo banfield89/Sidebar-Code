@@ -1,0 +1,22 @@
+# Internal business documents - NEVER push to public repo
+SIDEBAR_CODE_FRAMEWORK.md
+Sidebar_Code_Full_Wiring_Plan.md
+PHASE_PROMPTS.md
+AI_LAW_BUILD_CHAIN.md
+CLAUDE.md
+
+# Internal content directories
+Firm Prompts Content/
+.claude/
+
+# OS and editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Temporary files
+*.log
+*.tmp

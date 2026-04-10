@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sidebar Code | AI Workflow Integration for Law Firms</title>
-  <meta name="description" content="Production-ready AI skill packs and consulting for law firms. Workflow automation templates designed for use by licensed attorneys.">
+  <meta name="description" content="Consulting, custom agent workflows, and production-ready skill packs for law firms. Built by a practicing litigator.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&display=swap" rel="stylesheet">
@@ -34,7 +34,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── NAV ── */
+    /* NAV */
     nav {
       position: fixed;
       top: 0;
@@ -83,7 +83,7 @@
     }
     .nav-cta:hover { background: var(--accent) !important; }
 
-    /* ── HERO ── */
+    /* HERO */
     .hero {
       min-height: 100vh;
       display: flex;
@@ -119,7 +119,7 @@
     .hero p {
       font-size: 1.2rem;
       color: var(--muted);
-      max-width: 580px;
+      max-width: 620px;
       margin-top: 2rem;
       line-height: 1.7;
       opacity: 0;
@@ -173,7 +173,7 @@
       background: var(--rule);
     }
 
-    /* ── SECTIONS ── */
+    /* SECTIONS */
     section { padding: 6rem 2rem; }
 
     .section-inner {
@@ -195,109 +195,19 @@
       font-size: clamp(2rem, 4vw, 3.2rem);
       line-height: 1.15;
       letter-spacing: -0.02em;
-      max-width: 700px;
+      max-width: 760px;
       margin-bottom: 1rem;
     }
 
     .section-sub {
       color: var(--muted);
       font-size: 1.05rem;
-      max-width: 560px;
+      max-width: 620px;
       margin-bottom: 3.5rem;
       line-height: 1.7;
     }
 
-    /* ── PRODUCTS GRID ── */
-    .products-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .product-card {
-      background: var(--white);
-      border: 1px solid var(--rule);
-      border-radius: 6px;
-      padding: 2.5rem 2rem;
-      position: relative;
-      transition: all 0.3s;
-      display: flex;
-      flex-direction: column;
-    }
-    .product-card:hover {
-      border-color: var(--accent);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.06);
-      transform: translateY(-3px);
-    }
-
-    .product-card.featured {
-      border-color: var(--accent);
-      background: linear-gradient(to bottom, var(--white), #fdfcfa);
-    }
-    .product-card.featured::before {
-      content: 'Most Popular';
-      position: absolute;
-      top: -0.75rem;
-      left: 2rem;
-      background: var(--accent);
-      color: var(--white);
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 0.3rem 0.8rem;
-      border-radius: 3px;
-    }
-
-    .product-name {
-      font-family: var(--serif);
-      font-size: 1.4rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .product-price {
-      font-size: 2rem;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      margin-bottom: 1rem;
-      color: var(--ink);
-    }
-
-    .product-desc {
-      color: var(--muted);
-      font-size: 0.9rem;
-      line-height: 1.6;
-      flex: 1;
-      margin-bottom: 1.5rem;
-    }
-
-    .product-features {
-      list-style: none;
-      margin-bottom: 2rem;
-    }
-    .product-features li {
-      font-size: 0.85rem;
-      color: var(--ink);
-      padding: 0.4rem 0;
-      border-bottom: 1px solid var(--warm);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .product-features li::before {
-      content: '\2713';
-      color: var(--accent);
-      font-weight: 700;
-      font-size: 0.75rem;
-    }
-
-    .product-card .btn {
-      width: 100%;
-      text-align: center;
-      margin-top: auto;
-    }
-
-    /* ── CONSULTING ── */
+    /* CONSULTING */
     .consulting-bg {
       background: var(--ink);
       color: var(--paper);
@@ -316,17 +226,38 @@
       border-radius: 6px;
       padding: 2.5rem 2rem;
       transition: border-color 0.3s;
+      display: flex;
+      flex-direction: column;
     }
     .tier-card:hover { border-color: var(--accent-light); }
 
+    .tier-card.featured {
+      border-color: var(--accent);
+      background: rgba(184, 134, 11, 0.06);
+    }
+    .tier-card.featured::before {
+      content: 'Most Requested';
+      display: inline-block;
+      background: var(--accent);
+      color: var(--white);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.8rem;
+      border-radius: 3px;
+      margin-bottom: 1rem;
+      align-self: flex-start;
+    }
+
     .tier-name {
       font-family: var(--serif);
-      font-size: 1.3rem;
-      margin-bottom: 0.25rem;
+      font-size: 1.4rem;
+      margin-bottom: 0.4rem;
     }
 
     .tier-price {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       color: var(--accent-light);
       font-weight: 600;
       margin-bottom: 1rem;
@@ -334,7 +265,7 @@
 
     .tier-desc {
       font-size: 0.9rem;
-      color: rgba(245, 242, 237, 0.55);
+      color: rgba(245, 242, 237, 0.6);
       line-height: 1.65;
       margin-bottom: 1.5rem;
     }
@@ -342,20 +273,22 @@
     .tier-includes {
       list-style: none;
       margin-bottom: 2rem;
+      flex: 1;
     }
     .tier-includes li {
       font-size: 0.85rem;
-      color: rgba(245, 242, 237, 0.75);
-      padding: 0.4rem 0;
+      color: rgba(245, 242, 237, 0.78);
+      padding: 0.45rem 0;
       border-bottom: 1px solid rgba(245, 242, 237, 0.08);
       display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      align-items: baseline;
+      gap: 0.6rem;
     }
     .tier-includes li::before {
       content: '\25C6';
       color: var(--accent-light);
       font-size: 0.55rem;
+      flex-shrink: 0;
     }
 
     .btn-accent {
@@ -366,7 +299,180 @@
     }
     .btn-accent:hover { background: var(--accent-light); }
 
-    /* ── ABOUT ── */
+    /* CUSTOM WORKFLOWS */
+    .custom-bg {
+      background: var(--warm);
+    }
+
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .workflow-card {
+      background: var(--white);
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 2.5rem 2rem;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+    .workflow-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+      transform: translateY(-3px);
+    }
+
+    .workflow-name {
+      font-family: var(--serif);
+      font-size: 1.35rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .workflow-price {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .workflow-desc {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.65;
+      margin-bottom: 1.5rem;
+    }
+
+    .workflow-features {
+      list-style: none;
+      margin-bottom: 2rem;
+      flex: 1;
+    }
+    .workflow-features li {
+      font-size: 0.85rem;
+      color: var(--ink);
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--warm);
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+    .workflow-features li::before {
+      content: '\2713';
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+
+    /* PRODUCTS */
+    .products-label {
+      background: var(--warm);
+      padding: 0.4rem 1rem;
+      border-radius: 3px;
+      display: inline-block;
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .product-card {
+      background: var(--white);
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 2.25rem 1.75rem;
+      position: relative;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+    .product-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+      transform: translateY(-3px);
+    }
+
+    .product-card.featured {
+      border-color: var(--accent);
+      background: linear-gradient(to bottom, var(--white), #fdfcfa);
+    }
+    .product-card.featured::before {
+      content: 'Best Value';
+      position: absolute;
+      top: -0.75rem;
+      left: 1.75rem;
+      background: var(--accent);
+      color: var(--white);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.8rem;
+      border-radius: 3px;
+    }
+
+    .product-name {
+      font-family: var(--serif);
+      font-size: 1.3rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .product-price {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+      color: var(--ink);
+    }
+
+    .product-desc {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.6;
+      flex: 1;
+      margin-bottom: 1.25rem;
+    }
+
+    .product-features {
+      list-style: none;
+      margin-bottom: 1.75rem;
+    }
+    .product-features li {
+      font-size: 0.82rem;
+      color: var(--ink);
+      padding: 0.35rem 0;
+      border-bottom: 1px solid var(--warm);
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+    .product-features li::before {
+      content: '\2713';
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+
+    .product-card .btn {
+      width: 100%;
+      text-align: center;
+      margin-top: auto;
+      padding: 0.85rem 1.5rem;
+      font-size: 0.8rem;
+    }
+
+    /* ABOUT */
     .about-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -430,36 +536,41 @@
       min-width: 1.5rem;
     }
 
-    /* ── CONTACT / CTA ── */
+    /* CTA */
     .cta-section {
-      background: var(--warm);
+      background: var(--ink);
+      color: var(--paper);
       text-align: center;
       padding: 6rem 2rem;
     }
+    .cta-section .section-label { color: var(--accent-light); }
     .cta-section .section-title {
       margin: 0 auto 1rem;
+      color: var(--paper);
     }
     .cta-section .section-sub {
       margin: 0 auto 2.5rem;
       text-align: center;
+      color: rgba(245, 242, 237, 0.6);
     }
 
     .contact-email {
       font-family: var(--serif);
       font-size: 1.6rem;
-      color: var(--accent);
+      color: var(--accent-light);
       text-decoration: none;
       display: inline-block;
       margin-top: 1rem;
       transition: color 0.2s;
     }
-    .contact-email:hover { color: var(--ink); }
+    .contact-email:hover { color: var(--paper); }
 
-    /* ── FOOTER ── */
+    /* FOOTER */
     footer {
       border-top: 1px solid var(--rule);
       padding: 3rem 2rem;
       text-align: center;
+      background: var(--paper);
     }
 
     .footer-inner {
@@ -479,7 +590,18 @@
       color: var(--muted);
     }
 
-    /* ── ANIMATIONS ── */
+    .footer-links {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+    }
+    .footer-links a {
+      color: var(--muted);
+      text-decoration: none;
+      margin: 0 0.5rem;
+    }
+    .footer-links a:hover { color: var(--ink); }
+
+    /* ANIMATIONS */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -495,7 +617,7 @@
       transform: translateY(0);
     }
 
-    /* ── RESPONSIVE ── */
+    /* RESPONSIVE */
     @media (max-width: 768px) {
       nav { padding: 1rem 1.25rem; }
       .nav-links { display: none; }
@@ -503,11 +625,11 @@
       .about-grid { grid-template-columns: 1fr; gap: 2rem; }
       .hero { padding: 7rem 1.25rem 3rem; min-height: auto; }
       .hero h1 { font-size: 2.5rem; }
-      .products-grid, .tiers { grid-template-columns: 1fr; }
+      .products-grid, .tiers, .workflow-grid { grid-template-columns: 1fr; }
     }
 
     @media (min-width: 769px) and (max-width: 1024px) {
-      .products-grid { grid-template-columns: repeat(2, 1fr); }
+      .products-grid, .tiers, .workflow-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
@@ -517,121 +639,61 @@
   <nav id="nav">
     <a href="#" class="logo">Sidebar <span>Code</span></a>
     <div class="nav-links">
-      <a href="#products">Products</a>
       <a href="#consulting">Consulting</a>
+      <a href="#workflows">Custom Agents</a>
+      <a href="#products">Skill Packs</a>
       <a href="#about">About</a>
-      <a href="#contact" class="nav-cta">Get Started</a>
+      <a href="#contact" class="nav-cta">Book a Call</a>
     </div>
   </nav>
 
   <!-- HERO -->
   <section class="hero">
     <div class="hero-label">AI Workflow Integration for Law Firms</div>
-    <h1>Your practice runs on process. Now your AI can, too.</h1>
-    <p>Production-ready skill packs and consulting that wire AI into the workflows your firm already uses; from intake through trial.</p>
+    <h1>I modernized a law firm in the age of AI. Here is how you can do the same.</h1>
+    <p>Sidebar Code is the consulting practice of a working litigator who built the systems inside his own firm. Custom agent workflows, firm-wide AI configuration, and governance frameworks, delivered by someone who knows how the work actually gets done.</p>
     <div class="hero-actions">
-      <a href="#products" class="btn btn-primary">View Skill Packs</a>
-      <a href="#consulting" class="btn btn-outline">Book a Consultation</a>
+      <a href="#contact" class="btn btn-primary">Book a Discovery Call</a>
+      <a href="#consulting" class="btn btn-outline">See Consulting Tiers</a>
     </div>
     <div class="hero-rule"></div>
   </section>
 
-  <!-- PRODUCTS -->
-  <section id="products">
-    <div class="section-inner reveal">
-      <div class="section-label">Skill Packs &amp; Bundles</div>
-      <h2 class="section-title">AI that follows your playbook, not the other way around.</h2>
-      <p class="section-sub">Each skill pack is a set of production-ready workflow files designed for use by licensed attorneys. Pick a bundle and start automating today.</p>
-
-      <div class="products-grid">
-        <div class="product-card">
-          <div class="product-name">Single Skill Pack</div>
-          <div class="product-price">$297</div>
-          <p class="product-desc">One practice-area skill pack with Arizona jurisdiction module. Ideal for testing fit before committing to a bundle.</p>
-          <ul class="product-features">
-            <li>15-20 production-ready .md skill files</li>
-            <li>Arizona jurisdiction module</li>
-            <li>Supplementary reference PDFs</li>
-          </ul>
-          <a href="#contact" class="btn btn-outline">Get Started</a>
-        </div>
-
-        <div class="product-card featured">
-          <div class="product-name">Starter Bundle</div>
-          <div class="product-price">$497</div>
-          <p class="product-desc">One skill pack plus the Implementation Guide. Everything you need to deploy your first AI workflow.</p>
-          <ul class="product-features">
-            <li>1 practice-area skill pack</li>
-            <li>Implementation Guide ($299 value)</li>
-            <li>Arizona jurisdiction module</li>
-            <li>Setup walkthrough documentation</li>
-          </ul>
-          <a href="#contact" class="btn btn-primary">Get Started</a>
-        </div>
-
-        <div class="product-card">
-          <div class="product-name">Professional Bundle</div>
-          <div class="product-price">$797</div>
-          <p class="product-desc">Three skill packs, the Implementation Guide, and the Governance Starter Suite. Built for firms ready to scale.</p>
-          <ul class="product-features">
-            <li>3 practice-area skill packs</li>
-            <li>Implementation Guide ($299 value)</li>
-            <li>Governance Starter Suite ($397 value)</li>
-            <li>Arizona jurisdiction module</li>
-          </ul>
-          <a href="#contact" class="btn btn-outline">Get Started</a>
-        </div>
-
-        <div class="product-card">
-          <div class="product-name">Full Suite</div>
-          <div class="product-price">$1,297</div>
-          <p class="product-desc">Every skill pack we offer, plus the Implementation Guide and Governance Starter. The complete toolkit.</p>
-          <ul class="product-features">
-            <li>All available skill packs</li>
-            <li>Implementation Guide included</li>
-            <li>Governance Starter Suite included</li>
-            <li>Arizona jurisdiction module</li>
-          </ul>
-          <a href="#contact" class="btn btn-outline">Get Started</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CONSULTING -->
+  <!-- CONSULTING (PRIMARY OFFERING) -->
   <section id="consulting" class="consulting-bg">
     <div class="section-inner reveal">
-      <div class="section-label">Consulting</div>
-      <h2 class="section-title" style="color: var(--paper)">Hands-on integration, built around your firm.</h2>
-      <p class="section-sub">Every consulting engagement includes the relevant product bundle. You get the tools and the expertise to deploy them.</p>
+      <div class="section-label">Consulting Engagements</div>
+      <h2 class="section-title" style="color: var(--paper)">Built around your firm. Delivered by a practicing litigator.</h2>
+      <p class="section-sub">Every engagement starts with a conversation about your practice, your associates, and the workflows that are eating your partners' time. Then we build the solution around that. These are not templates. They are firm-specific configurations.</p>
 
       <div class="tiers">
         <div class="tier-card">
           <div class="tier-name">Foundation</div>
           <div class="tier-price">$5,000 &ndash; $7,500</div>
-          <p class="tier-desc">For firms exploring AI. A focused engagement that gets your team oriented and your first workflows running.</p>
+          <p class="tier-desc">For firms ready to take AI adoption seriously. A focused engagement that gets your team oriented and your first workflows running.</p>
           <ul class="tier-includes">
-            <li>Starter Bundle included</li>
-            <li>AI Usage Policy template</li>
-            <li>90-minute firm presentation</li>
-            <li>CLAUDE.md configuration overview</li>
+            <li>AI Usage Policy, firm-branded and ready to adopt</li>
+            <li>CLAUDE.md configuration overview for your firm</li>
+            <li>Starter skill pack included</li>
+            <li>90-minute implementation presentation for partners and associates</li>
             <li>30-day email support</li>
           </ul>
-          <a href="#contact" class="btn btn-accent">Inquire</a>
+          <a href="mailto:kyle@sidebarcode.com?subject=Foundation%20Package%20Inquiry" class="btn btn-accent">Inquire</a>
         </div>
 
-        <div class="tier-card">
+        <div class="tier-card featured">
           <div class="tier-name">Implementation</div>
           <div class="tier-price">$10,000 &ndash; $15,000</div>
-          <p class="tier-desc">For firms ready to commit. Full workflow audit, custom configuration, and hands-on deployment across your practice areas.</p>
+          <p class="tier-desc">For firms ready to commit. Full workflow audit, custom CLAUDE.md build, and hands-on deployment across your practice areas.</p>
           <ul class="tier-includes">
-            <li>Professional Bundle included</li>
-            <li>Custom CLAUDE.md build ($3,000 value)</li>
-            <li>Workflow audit and optimization</li>
-            <li>Custom implementation guide</li>
-            <li>90-day priority support</li>
+            <li>Custom CLAUDE.md build, tuned to your firm's workflow</li>
+            <li>Workflow audit with managing partner and lead associate</li>
+            <li>Practice-area skill customization</li>
+            <li>Custom implementation guide for your team</li>
+            <li>Professional skill pack bundle included</li>
+            <li>90-day priority support and a 45-day follow-up</li>
           </ul>
-          <a href="#contact" class="btn btn-accent">Inquire</a>
+          <a href="mailto:kyle@sidebarcode.com?subject=Implementation%20Package%20Inquiry" class="btn btn-accent">Inquire</a>
         </div>
 
         <div class="tier-card">
@@ -639,13 +701,120 @@
           <div class="tier-price">$25,000 &ndash; $40,000</div>
           <p class="tier-desc">For firms transforming operations. Multi-agent system design, firm-wide governance, and ongoing strategic support.</p>
           <ul class="tier-includes">
-            <li>Full Suite included</li>
-            <li>Multi-agent system architecture</li>
-            <li>Governance framework build-out</li>
-            <li>CLE-eligible training sessions</li>
-            <li>12-month quarterly check-ins</li>
+            <li>Multi-agent system architecture for your firm</li>
+            <li>Complete governance framework build-out</li>
+            <li>Full firm workflow audit, end to end</li>
+            <li>CLE-eligible training sessions for attorneys</li>
+            <li>Full skill suite included</li>
+            <li>12-month quarterly strategic check-ins</li>
           </ul>
-          <a href="#contact" class="btn btn-accent">Inquire</a>
+          <a href="mailto:kyle@sidebarcode.com?subject=Modernization%20Engagement%20Inquiry" class="btn btn-accent">Inquire</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CUSTOM AGENT WORKFLOWS -->
+  <section id="workflows" class="custom-bg">
+    <div class="section-inner reveal">
+      <div class="section-label">Custom Agent Workflows</div>
+      <h2 class="section-title">Tell me what's killing your team's time. I'll build the agent that fixes it.</h2>
+      <p class="section-sub">Every firm has a handful of workflows that consume associate and paralegal hours in ways that do not show up on any billing ledger. Intake triage. Discovery review. Fee application drafting. These are the workflows where a purpose-built agent pays for itself in the first month.</p>
+
+      <div class="workflow-grid">
+        <div class="workflow-card">
+          <div class="workflow-name">Single Workflow Agent</div>
+          <div class="workflow-price">$5,000</div>
+          <p class="workflow-desc">One custom agent scoped to one workflow. Ideal for firms that have an obvious bottleneck and want to see what a purpose-built agent can do before committing further.</p>
+          <ul class="workflow-features">
+            <li>One custom agent, scoped to your workflow</li>
+            <li>Skill files and CLAUDE.md additions</li>
+            <li>Integration guide tailored to your team</li>
+            <li>One-hour training call</li>
+            <li>Delivered in approximately two weeks</li>
+          </ul>
+          <a href="mailto:kyle@sidebarcode.com?subject=Single%20Workflow%20Agent%20Inquiry" class="btn btn-outline">Start a Conversation</a>
+        </div>
+
+        <div class="workflow-card">
+          <div class="workflow-name">Multi-Agent Workflow</div>
+          <div class="workflow-price">$10,000</div>
+          <p class="workflow-desc">Two to three agents coordinating on a workflow. Examples: intake to drafting to review; discovery to privilege log to production. Orchestration design included.</p>
+          <ul class="workflow-features">
+            <li>Two to three coordinated agents</li>
+            <li>Orchestration and handoff design</li>
+            <li>All skill files and configuration</li>
+            <li>Two-hour training session with your team</li>
+            <li>Delivered in approximately three to four weeks</li>
+          </ul>
+          <a href="mailto:kyle@sidebarcode.com?subject=Multi-Agent%20Workflow%20Inquiry" class="btn btn-outline">Start a Conversation</a>
+        </div>
+
+        <div class="workflow-card">
+          <div class="workflow-name">Practice-Area Workflow</div>
+          <div class="workflow-price">$15,000 &ndash; $25,000</div>
+          <p class="workflow-desc">End-to-end multi-agent system for a specific practice area. For firms that want to run an entire practice area through an AI-native workflow from day one.</p>
+          <ul class="workflow-features">
+            <li>Four or more coordinated agents across the workflow</li>
+            <li>Full governance integration</li>
+            <li>Practice-area skill pack customization</li>
+            <li>90-day implementation support</li>
+            <li>Delivered in approximately six to eight weeks</li>
+          </ul>
+          <a href="mailto:kyle@sidebarcode.com?subject=Practice-Area%20Workflow%20Inquiry" class="btn btn-outline">Start a Conversation</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCTS (SECONDARY) -->
+  <section id="products">
+    <div class="section-inner reveal">
+      <div class="products-label">Self-Serve Products</div>
+      <h2 class="section-title">Skill packs for attorneys who want to start today.</h2>
+      <p class="section-sub">Every consulting engagement includes a skill pack, but you do not have to start there. These are production-ready workflow files you can install today and use on your next matter. One-time purchase. Licensed for unlimited use within the purchasing firm.</p>
+
+      <div class="products-grid">
+        <div class="product-card">
+          <div class="product-name">Single Skill</div>
+          <div class="product-price">$497</div>
+          <p class="product-desc">Any one skill file: Pleading Parser, Deposition Prep, Oral Argument Prep, or Motion Drafting. Ideal for attorneys who want to evaluate a single workflow before buying more.</p>
+          <ul class="product-features">
+            <li>One production-ready skill file</li>
+            <li>Arizona jurisdiction module</li>
+            <li>Installation instructions for Claude Code</li>
+            <li>Firm-wide use license</li>
+          </ul>
+          <a href="mailto:kyle@sidebarcode.com?subject=Single%20Skill%20Purchase" class="btn btn-outline">Get Started</a>
+        </div>
+
+        <div class="product-card featured">
+          <div class="product-name">Litigation Trio</div>
+          <div class="product-price">$1,497</div>
+          <p class="product-desc">Pleading Parser, Deposition Prep, and Oral Argument Prep. Everything you need to analyze, prepare, and argue, without the drafting skill.</p>
+          <ul class="product-features">
+            <li>Pleading Parser and Issue Spotter</li>
+            <li>Deposition Preparation Outline Generator</li>
+            <li>Oral Argument Preparation Protocol</li>
+            <li>Integration guide for Claude Code</li>
+            <li>Firm-wide use license</li>
+          </ul>
+          <a href="mailto:kyle@sidebarcode.com?subject=Litigation%20Trio%20Purchase" class="btn btn-primary">Get Started</a>
+        </div>
+
+        <div class="product-card">
+          <div class="product-name">Full Litigation Suite</div>
+          <div class="product-price">$2,997</div>
+          <p class="product-desc">All four skills plus the Integration Guide and a CLAUDE.md starter template. The full toolkit for firms ready to run their litigation workflow through AI.</p>
+          <ul class="product-features">
+            <li>Pleading Parser and Issue Spotter</li>
+            <li>Deposition Preparation Outline Generator</li>
+            <li>Oral Argument Preparation Protocol</li>
+            <li>Motion and Pleading Drafting Protocol</li>
+            <li>Integration Guide and CLAUDE.md starter template</li>
+            <li>Firm-wide use license</li>
+          </ul>
+          <a href="mailto:kyle@sidebarcode.com?subject=Full%20Litigation%20Suite%20Purchase" class="btn btn-outline">Get Started</a>
         </div>
       </div>
     </div>
@@ -660,7 +829,8 @@
       <div class="about-grid">
         <div class="about-text">
           <p>Sidebar Code is the consulting and product arm of Banfield Consulting, LLC, founded by Kyle Banfield. As a practicing attorney at CHDB Law, LLP, Kyle builds the AI workflows he uses every day, then packages them for other firms.</p>
-          <p>We are AI workflow integration specialists. Our skill packs are workflow automation templates designed for use by licensed attorneys. Every deliverable is reviewed, tested, and jurisdiction-aware.</p>
+          <p>The difference between Sidebar Code and a legal tech vendor is simple. Kyle is not a tech consultant who learned law. He is a skilled litigator who also built the systems. He understands how to take a deposition, how insurance carriers evaluate billing, how a partner should review associate work product, and how to draft a motion under time pressure. He knows the business of law from the inside.</p>
+          <p>Every engagement is delivered personally by Kyle. Every skill file has been tested in real litigation. Every recommendation is grounded in what actually works when the deadline is tomorrow and the partner is waiting.</p>
 
           <div class="credential">
             <div>
@@ -702,28 +872,30 @@
     <div class="section-inner reveal">
       <div class="section-label">Get Started</div>
       <h2 class="section-title">Ready to wire AI into your practice?</h2>
-      <p class="section-sub">Reach out to discuss which skill pack or consulting tier fits your firm. Every engagement begins with a conversation.</p>
-      <a href="#products" class="btn btn-primary">View Products</a>
+      <p class="section-sub">Every engagement begins with a conversation. Tell me about your firm, your practice areas, and the workflows that are costing you time. I will tell you what I would build and what it would cost.</p>
+      <a href="mailto:kyle@sidebarcode.com?subject=Sidebar%20Code%20Discovery%20Call" class="btn btn-primary">Book a Discovery Call</a>
       <br>
-      <a href="mailto:banfield89@gmail.com" class="contact-email">banfield89@gmail.com</a>
+      <a href="mailto:kyle@sidebarcode.com" class="contact-email">kyle@sidebarcode.com</a>
     </div>
   </section>
 
   <!-- FOOTER -->
   <footer>
     <div class="footer-inner">
-      <p class="footer-disclaimer">This product provides workflow automation templates and AI configuration guidance, not legal advice. All outputs must be reviewed and approved by a licensed attorney before use. Sidebar Code is a DBA of Banfield Consulting, LLC. Banfield Consulting, LLC is not a law firm and does not provide legal services.</p>
+      <p class="footer-disclaimer">Sidebar Code provides workflow automation templates and AI configuration guidance, not legal advice. All outputs must be reviewed and approved by a licensed attorney before use. Sidebar Code is a DBA of Banfield Consulting, LLC. Banfield Consulting, LLC is not a law firm and does not provide legal services.</p>
       <p class="footer-copy">&copy; 2026 Banfield Consulting, LLC (DBA Sidebar Code). All rights reserved.</p>
+      <p class="footer-links">
+        <a href="/terms.html">Terms of Service</a> &middot;
+        <a href="mailto:kyle@sidebarcode.com">Contact</a>
+      </p>
     </div>
   </footer>
 
   <script>
-    // Nav scroll effect
     window.addEventListener('scroll', () => {
       document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
     });
 
-    // Scroll reveal
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.15 });
