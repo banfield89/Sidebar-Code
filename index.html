@@ -5,33 +5,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sidebar Code | AI Workflow Integration for Law Firms</title>
   <meta name="description" content="Consulting, custom agent workflows, and production-ready skill packs for law firms. Built by a practicing litigator.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --ink: #0a0f1a;
-      --paper: #f5f2ed;
-      --warm: #f0ebe3;
-      --accent: #b8860b;
-      --accent-light: #d4a843;
-      --muted: #6b7280;
-      --rule: #d1ccc4;
-      --white: #ffffff;
-      --serif: 'Instrument Serif', Georgia, serif;
-      --sans: 'DM Sans', system-ui, sans-serif;
+      /* Core Brand Colors */
+      --sc-navy:        #0D1A2D;
+      --sc-navy-mid:    #1E3A5F;
+      --sc-brass:       #B8902A;
+      --sc-teal:        #2A9D8F;
+      --sc-parchment:   #F5F3EE;
+      --sc-slate:       #64748B;
+      --sc-linen:       #E2DDD4;
+      --sc-white:       #FFFFFF;
+
+      /* Typography */
+      --sc-font-display: Georgia, 'Times New Roman', serif;
+      --sc-font-body:    system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --sc-font-mono:    'Courier New', Courier, monospace;
+
+      /* Font Sizes */
+      --sc-text-xs:   0.75rem;
+      --sc-text-sm:   0.875rem;
+      --sc-text-base: 1rem;
+      --sc-text-lg:   1.125rem;
+      --sc-text-xl:   1.25rem;
+      --sc-text-2xl:  1.5rem;
+      --sc-text-3xl:  1.875rem;
+      --sc-text-4xl:  2.25rem;
+
+      /* Spacing Scale */
+      --sc-space-1:   0.25rem;
+      --sc-space-2:   0.5rem;
+      --sc-space-3:   0.75rem;
+      --sc-space-4:   1rem;
+      --sc-space-6:   1.5rem;
+      --sc-space-8:   2rem;
+      --sc-space-12:  3rem;
+      --sc-space-16:  4rem;
+
+      /* Border Radius */
+      --sc-radius-sm:  4px;
+      --sc-radius-md:  8px;
+      --sc-radius-lg:  12px;
+
+      /* Gold Rule */
+      --sc-rule-height:  3px;
+      --sc-rule-color:   #B8902A;
     }
 
     html { scroll-behavior: smooth; }
 
     body {
-      font-family: var(--sans);
-      background: var(--paper);
-      color: var(--ink);
+      font-family: var(--sc-font-body);
+      background: var(--sc-parchment);
+      color: var(--sc-navy);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+      letter-spacing: 0.01em;
     }
 
     /* NAV */
@@ -40,48 +71,56 @@
       top: 0;
       width: 100%;
       z-index: 100;
-      padding: 1.25rem 2rem;
+      padding: 0 var(--sc-space-8);
+      height: 64px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(245, 242, 237, 0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--rule);
+      background: var(--sc-navy);
+      border-bottom: 1px solid var(--sc-navy-mid);
       transition: box-shadow 0.3s;
     }
-    nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.06); }
+    nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.15); }
 
     .logo {
-      font-family: var(--serif);
-      font-size: 1.5rem;
-      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
       text-decoration: none;
-      letter-spacing: -0.02em;
     }
-    .logo span { color: var(--accent); }
+    .logo-mark {
+      height: 36px;
+      width: auto;
+      flex-shrink: 0;
+    }
+    .logo-wordmark {
+      height: 34px;
+      width: auto;
+      flex-shrink: 0;
+    }
 
     .nav-links { display: flex; gap: 2rem; align-items: center; }
     .nav-links a {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--muted);
+      font-family: var(--sc-font-body);
+      font-size: var(--sc-text-sm);
+      color: #94A3B8;
       text-decoration: none;
       letter-spacing: 0.04em;
-      text-transform: uppercase;
-      transition: color 0.2s;
+      transition: color 150ms ease;
     }
-    .nav-links a:hover { color: var(--ink); }
+    .nav-links a:hover { color: var(--sc-white); }
 
     .nav-cta {
-      background: var(--ink) !important;
-      color: var(--paper) !important;
-      padding: 0.6rem 1.4rem;
-      border-radius: 4px;
-      font-size: 0.8rem !important;
-      letter-spacing: 0.06em;
-      transition: background 0.2s !important;
+      background: var(--sc-brass) !important;
+      color: var(--sc-navy) !important;
+      font-size: var(--sc-text-sm) !important;
+      font-weight: 600 !important;
+      padding: 8px 20px !important;
+      border-radius: var(--sc-radius-md) !important;
+      letter-spacing: 0.02em !important;
+      transition: opacity 150ms ease !important;
     }
-    .nav-cta:hover { background: var(--accent) !important; }
+    .nav-cta:hover { opacity: 0.88 !important; color: var(--sc-navy) !important; }
 
     /* HERO */
     .hero {
@@ -96,32 +135,36 @@
     }
 
     .hero-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.15em;
+      font-family: var(--sc-font-body);
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--accent);
+      color: var(--sc-brass);
       margin-bottom: 1.5rem;
       opacity: 0;
       animation: fadeUp 0.8s 0.2s forwards;
     }
 
     .hero h1 {
-      font-family: var(--serif);
-      font-size: clamp(3rem, 7vw, 5.5rem);
-      line-height: 1.05;
-      letter-spacing: -0.03em;
+      font-family: var(--sc-font-display);
+      font-size: clamp(2.5rem, 6vw, 3rem);
+      line-height: 1.15;
+      letter-spacing: 0.01em;
+      font-weight: 400;
       max-width: 900px;
+      color: var(--sc-navy);
       opacity: 0;
       animation: fadeUp 0.8s 0.4s forwards;
     }
 
     .hero p {
-      font-size: 1.2rem;
-      color: var(--muted);
+      font-size: 1.05rem;
+      color: var(--sc-slate);
       max-width: 620px;
       margin-top: 2rem;
       line-height: 1.7;
+      letter-spacing: 0.01em;
       opacity: 0;
       animation: fadeUp 0.8s 0.6s forwards;
     }
@@ -138,30 +181,30 @@
     .btn {
       display: inline-block;
       padding: 1rem 2rem;
-      font-family: var(--sans);
+      font-family: var(--sc-font-body);
       font-size: 0.85rem;
       font-weight: 600;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       text-decoration: none;
-      border-radius: 4px;
+      border-radius: var(--sc-radius-md);
       transition: all 0.25s;
       cursor: pointer;
       border: none;
     }
     .btn-primary {
-      background: var(--ink);
-      color: var(--paper);
+      background: var(--sc-navy);
+      color: var(--sc-parchment);
     }
-    .btn-primary:hover { background: var(--accent); }
+    .btn-primary:hover { background: var(--sc-navy-mid); }
     .btn-outline {
       background: transparent;
-      color: var(--ink);
-      border: 1.5px solid var(--ink);
+      color: var(--sc-navy);
+      border: 1.5px solid var(--sc-navy);
     }
     .btn-outline:hover {
-      background: var(--ink);
-      color: var(--paper);
+      background: var(--sc-navy);
+      color: var(--sc-parchment);
     }
 
     .hero-rule {
@@ -169,8 +212,8 @@
       bottom: 0;
       left: 2rem;
       right: 2rem;
-      height: 1px;
-      background: var(--rule);
+      height: var(--sc-rule-height);
+      background: var(--sc-rule-color);
     }
 
     /* SECTIONS */
@@ -182,38 +225,60 @@
     }
 
     .section-label {
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.18em;
+      font-family: var(--sc-font-body);
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--accent);
+      color: var(--sc-brass);
       margin-bottom: 1rem;
     }
 
     .section-title {
-      font-family: var(--serif);
-      font-size: clamp(2rem, 4vw, 3.2rem);
-      line-height: 1.15;
-      letter-spacing: -0.02em;
+      font-family: var(--sc-font-display);
+      font-size: clamp(1.75rem, 3.5vw, 1.875rem);
+      line-height: 1.2;
+      letter-spacing: 0.01em;
+      font-weight: 400;
       max-width: 760px;
       margin-bottom: 1rem;
+      color: var(--sc-navy);
     }
 
     .section-sub {
-      color: var(--muted);
-      font-size: 1.05rem;
+      color: var(--sc-slate);
+      font-size: 1rem;
       max-width: 620px;
       margin-bottom: 3.5rem;
       line-height: 1.7;
+      letter-spacing: 0.01em;
+    }
+
+    .section-note {
+      font-family: var(--sc-font-mono);
+      font-size: 0.8rem;
+      color: var(--sc-slate);
+      letter-spacing: 0.03em;
+      margin-top: -2.5rem;
+      margin-bottom: 3rem;
+    }
+
+    /* GOLD RULE DIVIDER */
+    .gold-rule {
+      height: var(--sc-rule-height);
+      background: var(--sc-rule-color);
+      border: none;
+      margin: 0;
     }
 
     /* CONSULTING */
     .consulting-bg {
-      background: var(--ink);
-      color: var(--paper);
+      background: var(--sc-navy);
+      color: var(--sc-parchment);
     }
-    .consulting-bg .section-label { color: var(--accent-light); }
-    .consulting-bg .section-sub { color: rgba(245, 242, 237, 0.6); }
+    .consulting-bg .section-label { color: var(--sc-brass); }
+    .consulting-bg .section-title { color: var(--sc-parchment); }
+    .consulting-bg .section-sub { color: rgba(245, 243, 238, 0.6); }
 
     .tiers {
       display: grid;
@@ -222,24 +287,24 @@
     }
 
     .tier-card {
-      border: 1px solid rgba(245, 242, 237, 0.12);
-      border-radius: 6px;
+      border: 1px solid rgba(245, 243, 238, 0.12);
+      border-radius: var(--sc-radius-md);
       padding: 2.5rem 2rem;
       transition: border-color 0.3s;
       display: flex;
       flex-direction: column;
     }
-    .tier-card:hover { border-color: var(--accent-light); }
+    .tier-card:hover { border-color: var(--sc-brass); }
 
     .tier-card.featured {
-      border-color: var(--accent);
-      background: rgba(184, 134, 11, 0.06);
+      border-color: var(--sc-brass);
+      background: rgba(184, 144, 42, 0.06);
     }
     .tier-card.featured::before {
       content: 'Most Requested';
       display: inline-block;
-      background: var(--accent);
-      color: var(--white);
+      background: var(--sc-brass);
+      color: var(--sc-white);
       font-size: 0.65rem;
       font-weight: 700;
       letter-spacing: 0.1em;
@@ -251,21 +316,23 @@
     }
 
     .tier-name {
-      font-family: var(--serif);
-      font-size: 1.4rem;
+      font-family: var(--sc-font-body);
+      font-size: 1.2rem;
+      font-weight: 500;
       margin-bottom: 0.4rem;
+      color: var(--sc-parchment);
     }
 
     .tier-price {
       font-size: 1.15rem;
-      color: var(--accent-light);
+      color: var(--sc-brass);
       font-weight: 600;
       margin-bottom: 1rem;
     }
 
     .tier-desc {
       font-size: 0.9rem;
-      color: rgba(245, 242, 237, 0.6);
+      color: rgba(245, 243, 238, 0.6);
       line-height: 1.65;
       margin-bottom: 1.5rem;
     }
@@ -277,31 +344,31 @@
     }
     .tier-includes li {
       font-size: 0.85rem;
-      color: rgba(245, 242, 237, 0.78);
+      color: rgba(245, 243, 238, 0.78);
       padding: 0.45rem 0;
-      border-bottom: 1px solid rgba(245, 242, 237, 0.08);
+      border-bottom: 1px solid rgba(245, 243, 238, 0.08);
       display: flex;
       align-items: baseline;
       gap: 0.6rem;
     }
     .tier-includes li::before {
       content: '\25C6';
-      color: var(--accent-light);
+      color: var(--sc-brass);
       font-size: 0.55rem;
       flex-shrink: 0;
     }
 
     .btn-accent {
-      background: var(--accent);
-      color: var(--white);
+      background: var(--sc-brass);
+      color: var(--sc-white);
       width: 100%;
       text-align: center;
     }
-    .btn-accent:hover { background: var(--accent-light); }
+    .btn-accent:hover { background: #a07d24; }
 
     /* CUSTOM WORKFLOWS */
     .custom-bg {
-      background: var(--warm);
+      background: var(--sc-linen);
     }
 
     .workflow-grid {
@@ -311,39 +378,50 @@
     }
 
     .workflow-card {
-      background: var(--white);
-      border: 1px solid var(--rule);
-      border-radius: 6px;
+      background: var(--sc-white);
+      border: 1px solid var(--sc-linen);
+      border-radius: var(--sc-radius-md);
       padding: 2.5rem 2rem;
       transition: all 0.3s;
       display: flex;
       flex-direction: column;
     }
     .workflow-card:hover {
-      border-color: var(--accent);
+      border-color: var(--sc-brass);
       box-shadow: 0 8px 30px rgba(0,0,0,0.06);
       transform: translateY(-3px);
     }
 
     .workflow-name {
-      font-family: var(--serif);
-      font-size: 1.35rem;
+      font-family: var(--sc-font-body);
+      font-size: 1.15rem;
+      font-weight: 500;
       margin-bottom: 0.4rem;
+      color: var(--sc-navy);
     }
 
     .workflow-price {
       font-size: 1.2rem;
       font-weight: 700;
-      color: var(--accent);
+      color: var(--sc-brass);
       margin-bottom: 1rem;
       letter-spacing: -0.02em;
     }
 
     .workflow-desc {
-      color: var(--muted);
+      color: var(--sc-slate);
       font-size: 0.9rem;
       line-height: 1.65;
       margin-bottom: 1.5rem;
+    }
+
+    .workflow-examples {
+      font-family: var(--sc-font-mono);
+      font-size: 0.78rem;
+      color: var(--sc-brass);
+      letter-spacing: 0.04em;
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
     }
 
     .workflow-features {
@@ -353,44 +431,61 @@
     }
     .workflow-features li {
       font-size: 0.85rem;
-      color: var(--ink);
+      color: var(--sc-navy);
       padding: 0.4rem 0;
-      border-bottom: 1px solid var(--warm);
+      border-bottom: 1px solid var(--sc-linen);
       display: flex;
       align-items: baseline;
       gap: 0.5rem;
     }
     .workflow-features li::before {
       content: '\2713';
-      color: var(--accent);
+      color: var(--sc-teal);
       font-weight: 700;
       font-size: 0.75rem;
     }
 
+    .btn-outline-dark {
+      background: transparent;
+      color: var(--sc-navy);
+      border: 1.5px solid var(--sc-navy);
+      width: 100%;
+      text-align: center;
+    }
+    .btn-outline-dark:hover {
+      background: var(--sc-navy);
+      color: var(--sc-parchment);
+    }
+
     /* PRODUCTS */
+    .products-bg {
+      background: var(--sc-parchment);
+    }
+
     .products-label {
-      background: var(--warm);
+      background: var(--sc-linen);
       padding: 0.4rem 1rem;
       border-radius: 3px;
       display: inline-block;
-      color: var(--muted);
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.15em;
+      color: var(--sc-slate);
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       margin-bottom: 1rem;
     }
 
     .products-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 1.5rem;
+      max-width: 760px;
     }
 
     .product-card {
-      background: var(--white);
-      border: 1px solid var(--rule);
-      border-radius: 6px;
+      background: var(--sc-white);
+      border: 1px solid var(--sc-linen);
+      border-radius: var(--sc-radius-md);
       padding: 2.25rem 1.75rem;
       position: relative;
       transition: all 0.3s;
@@ -398,22 +493,22 @@
       flex-direction: column;
     }
     .product-card:hover {
-      border-color: var(--accent);
+      border-color: var(--sc-brass);
       box-shadow: 0 8px 30px rgba(0,0,0,0.06);
       transform: translateY(-3px);
     }
 
     .product-card.featured {
-      border-color: var(--accent);
-      background: linear-gradient(to bottom, var(--white), #fdfcfa);
+      border-color: var(--sc-brass);
+      background: linear-gradient(to bottom, var(--sc-white), #fdfcfa);
     }
     .product-card.featured::before {
-      content: 'Best Value';
+      content: 'Complete Toolkit';
       position: absolute;
       top: -0.75rem;
       left: 1.75rem;
-      background: var(--accent);
-      color: var(--white);
+      background: var(--sc-brass);
+      color: var(--sc-white);
       font-size: 0.65rem;
       font-weight: 700;
       letter-spacing: 0.1em;
@@ -423,9 +518,11 @@
     }
 
     .product-name {
-      font-family: var(--serif);
-      font-size: 1.3rem;
+      font-family: var(--sc-font-body);
+      font-size: 1.15rem;
+      font-weight: 500;
       margin-bottom: 0.4rem;
+      color: var(--sc-navy);
     }
 
     .product-price {
@@ -433,11 +530,11 @@
       font-weight: 700;
       letter-spacing: -0.03em;
       margin-bottom: 1rem;
-      color: var(--ink);
+      color: var(--sc-navy);
     }
 
     .product-desc {
-      color: var(--muted);
+      color: var(--sc-slate);
       font-size: 0.88rem;
       line-height: 1.6;
       flex: 1;
@@ -450,16 +547,16 @@
     }
     .product-features li {
       font-size: 0.82rem;
-      color: var(--ink);
+      color: var(--sc-navy);
       padding: 0.35rem 0;
-      border-bottom: 1px solid var(--warm);
+      border-bottom: 1px solid var(--sc-linen);
       display: flex;
       align-items: baseline;
       gap: 0.5rem;
     }
     .product-features li::before {
       content: '\2713';
-      color: var(--accent);
+      color: var(--sc-teal);
       font-weight: 700;
       font-size: 0.75rem;
     }
@@ -473,6 +570,10 @@
     }
 
     /* ABOUT */
+    .about-bg {
+      background: var(--sc-parchment);
+    }
+
     .about-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -481,7 +582,7 @@
     }
 
     .about-text p {
-      color: var(--muted);
+      color: var(--sc-slate);
       font-size: 1rem;
       line-height: 1.8;
       margin-bottom: 1.25rem;
@@ -492,85 +593,94 @@
       align-items: center;
       gap: 0.75rem;
       padding: 1rem 0;
-      border-top: 1px solid var(--rule);
+      border-top: 1px solid var(--sc-linen);
     }
     .credential-label {
-      font-size: 0.7rem;
-      font-weight: 600;
+      font-size: 0.68rem;
+      font-weight: 500;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--sc-slate);
     }
     .credential-value {
       font-size: 0.95rem;
       font-weight: 500;
+      color: var(--sc-navy);
     }
 
     .about-pillars {
-      background: var(--white);
-      border: 1px solid var(--rule);
-      border-radius: 6px;
+      background: var(--sc-white);
+      border: 1px solid var(--sc-linen);
+      border-radius: var(--sc-radius-md);
       padding: 2.5rem;
     }
 
     .pillars-title {
-      font-family: var(--serif);
+      font-family: var(--sc-font-display);
       font-size: 1.3rem;
+      font-weight: 400;
       margin-bottom: 1.5rem;
+      color: var(--sc-navy);
     }
 
     .pillar-item {
       font-size: 0.85rem;
       padding: 0.65rem 0;
-      border-bottom: 1px solid var(--warm);
-      color: var(--ink);
+      border-bottom: 1px solid var(--sc-linen);
+      color: var(--sc-navy);
       display: flex;
       align-items: baseline;
       gap: 0.75rem;
     }
     .pillar-num {
-      font-family: var(--serif);
+      font-family: var(--sc-font-display);
       font-size: 1rem;
-      color: var(--accent);
+      color: var(--sc-brass);
       font-weight: 400;
       min-width: 1.5rem;
     }
 
     /* CTA */
     .cta-section {
-      background: var(--ink);
-      color: var(--paper);
+      background: var(--sc-navy);
+      color: var(--sc-parchment);
       text-align: center;
       padding: 6rem 2rem;
     }
-    .cta-section .section-label { color: var(--accent-light); }
+    .cta-section .section-label { color: var(--sc-brass); }
     .cta-section .section-title {
       margin: 0 auto 1rem;
-      color: var(--paper);
+      color: var(--sc-parchment);
     }
     .cta-section .section-sub {
       margin: 0 auto 2.5rem;
       text-align: center;
-      color: rgba(245, 242, 237, 0.6);
+      color: rgba(245, 243, 238, 0.6);
     }
+    .cta-section .btn-primary {
+      background: var(--sc-brass);
+      color: var(--sc-navy);
+    }
+    .cta-section .btn-primary:hover { opacity: 0.88; }
 
     .contact-email {
-      font-family: var(--serif);
-      font-size: 1.6rem;
-      color: var(--accent-light);
+      font-family: var(--sc-font-mono);
+      font-size: 1.1rem;
+      color: var(--sc-brass);
       text-decoration: none;
       display: inline-block;
       margin-top: 1rem;
+      letter-spacing: 0.04em;
       transition: color 0.2s;
     }
-    .contact-email:hover { color: var(--paper); }
+    .contact-email:hover { color: var(--sc-parchment); }
 
     /* FOOTER */
     footer {
-      border-top: 1px solid var(--rule);
+      border-top: 1px solid var(--sc-linen);
       padding: 3rem 2rem;
       text-align: center;
-      background: var(--paper);
+      background: var(--sc-parchment);
     }
 
     .footer-inner {
@@ -580,14 +690,14 @@
 
     .footer-disclaimer {
       font-size: 0.75rem;
-      color: var(--muted);
+      color: var(--sc-slate);
       line-height: 1.7;
       margin-bottom: 1.5rem;
     }
 
     .footer-copy {
       font-size: 0.75rem;
-      color: var(--muted);
+      color: var(--sc-slate);
     }
 
     .footer-links {
@@ -595,11 +705,12 @@
       font-size: 0.75rem;
     }
     .footer-links a {
-      color: var(--muted);
+      color: var(--sc-slate);
       text-decoration: none;
       margin: 0 0.5rem;
+      transition: color 0.2s;
     }
-    .footer-links a:hover { color: var(--ink); }
+    .footer-links a:hover { color: var(--sc-navy); }
 
     /* ANIMATIONS */
     @keyframes fadeUp {
@@ -617,18 +728,38 @@
       transform: translateY(0);
     }
 
+    /* MOBILE NAV TOGGLE */
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .nav-toggle span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: #94A3B8;
+      margin: 5px 0;
+      transition: all 0.3s;
+    }
+
     /* RESPONSIVE */
     @media (max-width: 768px) {
-      nav { padding: 1rem 1.25rem; }
+      nav { padding: 0 1.25rem; }
       .nav-links { display: none; }
+      .nav-toggle { display: block; }
       section { padding: 4rem 1.25rem; }
       .about-grid { grid-template-columns: 1fr; gap: 2rem; }
       .hero { padding: 7rem 1.25rem 3rem; min-height: auto; }
-      .hero h1 { font-size: 2.5rem; }
+      .hero h1 { font-size: 2rem; }
       .products-grid, .tiers, .workflow-grid { grid-template-columns: 1fr; }
+      .products-grid { max-width: 100%; }
     }
 
     @media (min-width: 769px) and (max-width: 1024px) {
+      .products-grid { max-width: 100%; }
       .products-grid, .tiers, .workflow-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
@@ -637,14 +768,28 @@
 
   <!-- NAV -->
   <nav id="nav">
-    <a href="#" class="logo">Sidebar <span>Code</span></a>
+    <a href="#" class="logo" aria-label="Sidebar Code home">
+      <svg class="logo-mark" viewBox="0 0 76 58" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" height="36">
+        <text y="48" font-family="Georgia, 'Times New Roman', serif" font-size="46" fill="#2A9D8F" font-weight="700">&lt;</text>
+        <rect x="37" y="11" width="5" height="36" rx="2.5" fill="#B8902A"/>
+        <text x="48" y="48" font-family="Georgia, 'Times New Roman', serif" font-size="46" fill="#2A9D8F" font-weight="700">&gt;</text>
+      </svg>
+      <svg class="logo-wordmark" viewBox="0 0 152 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Sidebar Code" height="34">
+        <text x="0" y="34" font-family="Georgia, 'Times New Roman', serif" font-size="22" fill="#FFFFFF" letter-spacing="5" font-weight="400">SIDEBAR</text>
+        <rect x="1" y="40" width="148" height="1.5" fill="#B8902A" opacity="0.5"/>
+        <text x="1" y="55" font-family="'Courier New', Courier, monospace" font-size="13" fill="#B8902A" letter-spacing="9">code</text>
+      </svg>
+    </a>
     <div class="nav-links">
       <a href="#consulting">Consulting</a>
       <a href="#workflows">Custom Agents</a>
-      <a href="#products">Skill Packs</a>
+      <a href="#products">Products</a>
       <a href="#about">About</a>
       <a href="#contact" class="nav-cta">Book a Call</a>
     </div>
+    <button class="nav-toggle" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
 
   <!-- HERO -->
@@ -659,23 +804,26 @@
     <div class="hero-rule"></div>
   </section>
 
+  <!-- GOLD RULE -->
+  <hr class="gold-rule">
+
   <!-- CONSULTING (PRIMARY OFFERING) -->
   <section id="consulting" class="consulting-bg">
     <div class="section-inner reveal">
       <div class="section-label">Consulting Engagements</div>
-      <h2 class="section-title" style="color: var(--paper)">Built around your firm. Delivered by a practicing litigator.</h2>
+      <h2 class="section-title">Built around your firm. Delivered by a practicing litigator.</h2>
       <p class="section-sub">Every engagement starts with a conversation about your practice, your associates, and the workflows that are eating your partners' time. Then we build the solution around that. These are not templates. They are firm-specific configurations.</p>
 
       <div class="tiers">
         <div class="tier-card">
           <div class="tier-name">Foundation</div>
           <div class="tier-price">$5,000 &ndash; $7,500</div>
-          <p class="tier-desc">For firms ready to take AI adoption seriously. A focused engagement that gets your team oriented and your first workflows running.</p>
+          <p class="tier-desc">Kyle shows up and makes it work for your firm. A focused consulting session that gets your team oriented, deploys a working AI workflow, and gives your partners the confidence to adopt.</p>
           <ul class="tier-includes">
-            <li>AI Usage Policy, firm-branded and ready to adopt</li>
-            <li>CLAUDE.md configuration overview for your firm</li>
-            <li>Starter skill pack included</li>
-            <li>90-minute implementation presentation for partners and associates</li>
+            <li>Kyle-led 90-minute session for partners and associates</li>
+            <li>Live deployment of one skill on your firm's workflow</li>
+            <li>CLAUDE.md starter configured during the session</li>
+            <li>Technology Overview and Limitations Guide</li>
             <li>30-day email support</li>
           </ul>
           <a href="mailto:kyle@sidebarcode.com?subject=Foundation%20Package%20Inquiry" class="btn btn-accent">Inquire</a>
@@ -690,7 +838,7 @@
             <li>Workflow audit with managing partner and lead associate</li>
             <li>Practice-area skill customization</li>
             <li>Custom implementation guide for your team</li>
-            <li>Professional skill pack bundle included</li>
+            <li>Full skill suite included</li>
             <li>90-day priority support and a 45-day follow-up</li>
           </ul>
           <a href="mailto:kyle@sidebarcode.com?subject=Implementation%20Package%20Inquiry" class="btn btn-accent">Inquire</a>
@@ -714,11 +862,14 @@
     </div>
   </section>
 
+  <!-- GOLD RULE -->
+  <hr class="gold-rule">
+
   <!-- CUSTOM AGENT WORKFLOWS -->
   <section id="workflows" class="custom-bg">
     <div class="section-inner reveal">
       <div class="section-label">Custom Agent Workflows</div>
-      <h2 class="section-title">Tell me what's killing your team's time. I'll build the agent that fixes it.</h2>
+      <h2 class="section-title">Tell me what is killing your team's time. I will build the agent that fixes it.</h2>
       <p class="section-sub">Every firm has a handful of workflows that consume associate and paralegal hours in ways that do not show up on any billing ledger. Intake triage. Discovery review. Fee application drafting. These are the workflows where a purpose-built agent pays for itself in the first month.</p>
 
       <div class="workflow-grid">
@@ -726,6 +877,7 @@
           <div class="workflow-name">Single Workflow Agent</div>
           <div class="workflow-price">$5,000</div>
           <p class="workflow-desc">One custom agent scoped to one workflow. Ideal for firms that have an obvious bottleneck and want to see what a purpose-built agent can do before committing further.</p>
+          <p class="workflow-examples">Examples: intake triage, demand letter generator, discovery request drafter, billing entry reviewer</p>
           <ul class="workflow-features">
             <li>One custom agent, scoped to your workflow</li>
             <li>Skill files and CLAUDE.md additions</li>
@@ -733,13 +885,14 @@
             <li>One-hour training call</li>
             <li>Delivered in approximately two weeks</li>
           </ul>
-          <a href="mailto:kyle@sidebarcode.com?subject=Single%20Workflow%20Agent%20Inquiry" class="btn btn-outline">Start a Conversation</a>
+          <a href="mailto:kyle@sidebarcode.com?subject=Single%20Workflow%20Agent%20Inquiry" class="btn btn-outline-dark">Start a Conversation</a>
         </div>
 
         <div class="workflow-card">
           <div class="workflow-name">Multi-Agent Workflow</div>
           <div class="workflow-price">$10,000</div>
-          <p class="workflow-desc">Two to three agents coordinating on a workflow. Examples: intake to drafting to review; discovery to privilege log to production. Orchestration design included.</p>
+          <p class="workflow-desc">Two to three agents coordinating on a workflow. Orchestration design included so every handoff is clean and every output feeds the next step.</p>
+          <p class="workflow-examples">Examples: intake to drafting to review pipeline, discovery response pipeline</p>
           <ul class="workflow-features">
             <li>Two to three coordinated agents</li>
             <li>Orchestration and handoff design</li>
@@ -747,13 +900,14 @@
             <li>Two-hour training session with your team</li>
             <li>Delivered in approximately three to four weeks</li>
           </ul>
-          <a href="mailto:kyle@sidebarcode.com?subject=Multi-Agent%20Workflow%20Inquiry" class="btn btn-outline">Start a Conversation</a>
+          <a href="mailto:kyle@sidebarcode.com?subject=Multi-Agent%20Workflow%20Inquiry" class="btn btn-outline-dark">Start a Conversation</a>
         </div>
 
         <div class="workflow-card">
           <div class="workflow-name">Practice-Area Workflow</div>
           <div class="workflow-price">$15,000 &ndash; $25,000</div>
           <p class="workflow-desc">End-to-end multi-agent system for a specific practice area. For firms that want to run an entire practice area through an AI-native workflow from day one.</p>
+          <p class="workflow-examples">Examples: full collections lifecycle, full insurance defense case management</p>
           <ul class="workflow-features">
             <li>Four or more coordinated agents across the workflow</li>
             <li>Full governance integration</li>
@@ -761,48 +915,39 @@
             <li>90-day implementation support</li>
             <li>Delivered in approximately six to eight weeks</li>
           </ul>
-          <a href="mailto:kyle@sidebarcode.com?subject=Practice-Area%20Workflow%20Inquiry" class="btn btn-outline">Start a Conversation</a>
+          <a href="mailto:kyle@sidebarcode.com?subject=Practice-Area%20Workflow%20Inquiry" class="btn btn-outline-dark">Start a Conversation</a>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- GOLD RULE -->
+  <hr class="gold-rule">
+
   <!-- PRODUCTS (SECONDARY) -->
-  <section id="products">
+  <section id="products" class="products-bg">
     <div class="section-inner reveal">
       <div class="products-label">Self-Serve Products</div>
       <h2 class="section-title">Skill packs for attorneys who want to start today.</h2>
-      <p class="section-sub">Every consulting engagement includes a skill pack, but you do not have to start there. These are production-ready workflow files you can install today and use on your next matter. One-time purchase. Licensed for unlimited use within the purchasing firm.</p>
+      <p class="section-sub">Production-ready workflow files you can install today and use on your next matter. Jurisdiction-neutral; configurable for any state.</p>
+      <p class="section-note">One-time purchase. Firm-wide license. Self-serve; consulting available for hands-on support. Requires Claude Code (free from Anthropic) and a Claude Pro subscription or API key, billed separately by Anthropic.</p>
 
       <div class="products-grid">
         <div class="product-card">
-          <div class="product-name">Single Skill</div>
-          <div class="product-price">$497</div>
-          <p class="product-desc">Any one skill file: Pleading Parser, Deposition Prep, Oral Argument Prep, or Motion Drafting. Ideal for attorneys who want to evaluate a single workflow before buying more.</p>
+          <div class="product-name">Parser Trial</div>
+          <div class="product-price">$197</div>
+          <p class="product-desc">Get the product into the firm. The Pleading Parser skill creates an immediate "aha" moment, analyzing any pleading and spotting issues in minutes instead of hours.</p>
           <ul class="product-features">
-            <li>One production-ready skill file</li>
-            <li>Arizona jurisdiction module</li>
-            <li>Installation instructions for Claude Code</li>
+            <li>Pleading Parser skill file</li>
+            <li>One-click installer for Claude Code</li>
+            <li>Quick Start guide</li>
+            <li>Attorney Review Checklist</li>
             <li>Firm-wide use license</li>
           </ul>
-          <a href="mailto:kyle@sidebarcode.com?subject=Single%20Skill%20Purchase" class="btn btn-outline">Get Started</a>
+          <a href="mailto:kyle@sidebarcode.com?subject=Parser%20Trial%20Purchase" class="btn btn-outline">Get Started</a>
         </div>
 
         <div class="product-card featured">
-          <div class="product-name">Litigation Trio</div>
-          <div class="product-price">$1,497</div>
-          <p class="product-desc">Pleading Parser, Deposition Prep, and Oral Argument Prep. Everything you need to analyze, prepare, and argue, without the drafting skill.</p>
-          <ul class="product-features">
-            <li>Pleading Parser and Issue Spotter</li>
-            <li>Deposition Preparation Outline Generator</li>
-            <li>Oral Argument Preparation Protocol</li>
-            <li>Integration guide for Claude Code</li>
-            <li>Firm-wide use license</li>
-          </ul>
-          <a href="mailto:kyle@sidebarcode.com?subject=Litigation%20Trio%20Purchase" class="btn btn-primary">Get Started</a>
-        </div>
-
-        <div class="product-card">
           <div class="product-name">Full Litigation Suite</div>
           <div class="product-price">$2,997</div>
           <p class="product-desc">All four skills plus the Integration Guide and a CLAUDE.md starter template. The full toolkit for firms ready to run their litigation workflow through AI.</p>
@@ -814,14 +959,14 @@
             <li>Integration Guide and CLAUDE.md starter template</li>
             <li>Firm-wide use license</li>
           </ul>
-          <a href="mailto:kyle@sidebarcode.com?subject=Full%20Litigation%20Suite%20Purchase" class="btn btn-outline">Get Started</a>
+          <a href="mailto:kyle@sidebarcode.com?subject=Full%20Litigation%20Suite%20Purchase" class="btn btn-primary">Get Started</a>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ABOUT -->
-  <section id="about">
+  <section id="about" class="about-bg">
     <div class="section-inner reveal">
       <div class="section-label">About</div>
       <h2 class="section-title">Built by a litigator, for litigators.</h2>
@@ -866,6 +1011,9 @@
       </div>
     </div>
   </section>
+
+  <!-- GOLD RULE -->
+  <hr class="gold-rule">
 
   <!-- CTA -->
   <section id="contact" class="cta-section">

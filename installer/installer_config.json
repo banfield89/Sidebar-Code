@@ -1,0 +1,26 @@
+{
+  "mode": "full_suite",
+  "product_name": "Sidebar Code",
+  "version": "1.0.0",
+  "modes": {
+    "parser_trial": {
+      "label": "Parser Trial",
+      "description": "Installs the Pleading Parser skill for Claude Code.",
+      "skills": [
+        "pleading-parser.md"
+      ],
+      "include_claude_template": false
+    },
+    "full_suite": {
+      "label": "Full Litigation Suite",
+      "description": "Installs all 4 litigation skills and the CLAUDE.md starter template.",
+      "skills": [
+        "pleading-parser.md",
+        "deposition-prep.md",
+        "oral-argument-prep.md",
+        "motion-drafting.md"
+      ],
+      "include_claude_template": true
+    }
+  }
+}

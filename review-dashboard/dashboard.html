@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sidebar Code | Product Catalog Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --ink: #0a0f1a;
+      --paper: #f5f2ed;
+      --warm: #f0ebe3;
+      --accent: #b8860b;
+      --accent-light: #d4a843;
+      --muted: #6b7280;
+      --rule: #d1ccc4;
+      --white: #ffffff;
+      --red: #c0392b;
+      --red-bg: #fdf2f2;
+      --red-border: #e74c3c;
+      --green: #27ae60;
+      --green-bg: #f0faf4;
+      --blue: #2980b9;
+      --blue-bg: #eef6fc;
+      --orange: #e67e22;
+      --orange-bg: #fef9f0;
+      --serif: 'Instrument Serif', Georgia, serif;
+      --sans: 'DM Sans', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Header */
+    header {
+      padding: 2rem 2.5rem 1.5rem;
+      border-bottom: 1px solid var(--rule);
+      background: rgba(245, 242, 237, 0.95);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .logo {
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+
+    .logo span { color: var(--accent); }
+
+    .stats-bar {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 0.4rem 1rem;
+      background: var(--white);
+      border-radius: 8px;
+      border: 1px solid var(--rule);
+      min-width: 80px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    .progress-bar-container {
+      width: 200px;
+      height: 8px;
+      background: var(--rule);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 0.75rem;
+      padding: 1rem 2.5rem;
+      background: var(--warm);
+      border-bottom: 1px solid var(--rule);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filters label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .filters select {
+      padding: 0.4rem 0.8rem;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      background: var(--white);
+      font-family: var(--sans);
+      font-size: 0.85rem;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .refresh-btn {
+      margin-left: auto;
+      padding: 0.4rem 1rem;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--accent);
+      font-family: var(--sans);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .refresh-btn:hover {
+      background: var(--accent);
+      color: var(--white);
+    }
+
+    /* Main content */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 4rem;
+    }
+
+    /* Section headers */
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 0;
+      border-bottom: 2px solid var(--rule);
+      margin-bottom: 0.75rem;
+      cursor: default;
+    }
+
+    .section-header h2 {
+      font-family: var(--serif);
+      font-size: 1.25rem;
+      font-weight: 400;
+    }
+
+    .section-count {
+      background: var(--muted);
+      color: var(--white);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+    }
+
+    .section-toggle {
+      margin-left: auto;
+      background: none;
+      border: none;
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    /* Flagged section styling */
+    .section.flagged {
+      border: 2px solid var(--red-border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      background: var(--red-bg);
+    }
+
+    .section.flagged .section-header {
+      border-bottom-color: var(--red-border);
+    }
+
+    .section.flagged .section-count {
+      background: var(--red);
+    }
+
+    .section.flagged .section-header h2 {
+      color: var(--red);
+    }
+
+    /* File cards */
+    .file-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      background: var(--white);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      transition: box-shadow 0.2s;
+    }
+
+    .file-card:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.2rem;
+    }
+
+    .file-meta span { white-space: nowrap; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .badge-draft { background: #e5e7eb; color: #374151; }
+    .badge-pending_kyle_review { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange); }
+    .badge-kyle_approved { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
+    .badge-pending_aemon_review { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue); }
+    .badge-aemon_approved { background: #e8f5e9; color: #2e7d32; border: 1px solid #2e7d32; }
+    .badge-revision_requested { background: #fff3e0; color: #e65100; border: 1px solid #e65100; }
+    .badge-final_approved { background: #e8f5e9; color: #1b5e20; border: 1px solid #1b5e20; }
+
+    .flag-tag {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      background: var(--red);
+      color: var(--white);
+      letter-spacing: 0.04em;
+      margin-left: 0.25rem;
+    }
+
+    /* Action buttons */
+    .actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-family: var(--sans);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .btn-approve {
+      background: var(--green);
+      color: var(--white);
+    }
+
+    .btn-approve:hover { background: #219150; }
+
+    .btn-revision {
+      background: transparent;
+      color: var(--orange);
+      border-color: var(--orange);
+    }
+
+    .btn-revision:hover {
+      background: var(--orange);
+      color: var(--white);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Revision modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(10, 15, 26, 0.5);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    }
+
+    .modal h3 {
+      font-family: var(--serif);
+      font-size: 1.2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .modal textarea {
+      width: 100%;
+      height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      font-family: var(--sans);
+      font-size: 0.9rem;
+      resize: vertical;
+      margin-bottom: 1rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+
+    .btn-cancel {
+      background: transparent;
+      color: var(--muted);
+      border-color: var(--rule);
+    }
+
+    .btn-submit-revision {
+      background: var(--orange);
+      color: var(--white);
+    }
+
+    /* Empty state */
+    .empty {
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 0.75rem 1.25rem;
+      background: var(--ink);
+      color: var(--white);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 300;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 4rem;
+      color: var(--muted);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      border: 3px solid var(--rule);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-bottom: 0.75rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Collapsible */
+    .section-content.collapsed { display: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div class="logo">Sidebar <span>Code</span> &mdash; Review Dashboard</div>
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-value" id="total-count">-</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="flagged-count" style="color: var(--red);">-</div>
+        <div class="stat-label">Flagged</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="pending-count" style="color: var(--orange);">-</div>
+        <div class="stat-label">Pending</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="approved-count" style="color: var(--green);">-</div>
+        <div class="stat-label">Approved</div>
+      </div>
+      <div>
+        <div style="font-size: 0.7rem; color: var(--muted); margin-bottom: 0.25rem;">
+          Completion: <strong id="completion-pct">0%</strong>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progress-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="filters">
+  <label>Tier:</label>
+  <select id="filter-tier">
+    <option value="">All Tiers</option>
+  </select>
+  <label>Category:</label>
+  <select id="filter-category">
+    <option value="">All Categories</option>
+    <option value="sales_packet">Sales Packet</option>
+    <option value="deliverable">Deliverable</option>
+    <option value="legal_instrument">Legal Instrument</option>
+    <option value="internal">Internal</option>
+    <option value="other">Other</option>
+  </select>
+  <button class="refresh-btn" onclick="loadFiles()">Refresh</button>
+</div>
+
+<main id="main-content">
+  <div class="loading">
+    <div class="spinner"></div>
+    <div>Scanning catalog...</div>
+  </div>
+</main>
+
+<!-- Revision modal -->
+<div class="modal-overlay" id="revision-modal">
+  <div class="modal">
+    <h3>Request Revision</h3>
+    <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.75rem;" id="revision-file-label"></p>
+    <textarea id="revision-notes" placeholder="Describe what needs to change..."></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeRevisionModal()">Cancel</button>
+      <button class="btn btn-submit-revision" onclick="submitRevision()">Submit Revision</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = '';
+  let allFiles = [];
+  let revisionTarget = null;
+
+  async function loadFiles() {
+    const main = document.getElementById('main-content');
+    main.innerHTML = '<div class="loading"><div class="spinner"></div><div>Scanning catalog...</div></div>';
+
+    try {
+      const res = await fetch(`${API}/api/files`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      allFiles = await res.json();
+      renderDashboard();
+    } catch (err) {
+      main.innerHTML = `<div class="loading" style="color: var(--red);">Failed to load: ${err.message}</div>`;
+    }
+  }
+
+  function getFiltered() {
+    const tier = document.getElementById('filter-tier').value;
+    const cat = document.getElementById('filter-category').value;
+    let items = allFiles;
+    if (tier) items = items.filter(f => f.tier === tier);
+    if (cat) items = items.filter(f => f.category === cat);
+    return items;
+  }
+
+  function renderDashboard() {
+    const items = getFiltered();
+    const main = document.getElementById('main-content');
+
+    // Populate tier filter
+    const tiers = [...new Set(allFiles.map(f => f.tier))].sort();
+    const tierSelect = document.getElementById('filter-tier');
+    const currentTier = tierSelect.value;
+    tierSelect.innerHTML = '<option value="">All Tiers</option>';
+    tiers.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.textContent = t;
+      if (t === currentTier) opt.selected = true;
+      tierSelect.appendChild(opt);
+    });
+
+    // Categorize
+    const flagged = items.filter(f => f.flagged);
+    const pendingKyle = items.filter(f => f.review_status === 'pending_kyle_review' && !f.flagged);
+    const pendingAemon = items.filter(f => f.review_status === 'pending_aemon_review' && !f.flagged);
+    const approved = items.filter(f =>
+      ['kyle_approved', 'aemon_approved', 'final_approved'].includes(f.review_status)
+    );
+    const revisions = items.filter(f => f.review_status === 'revision_requested');
+    const drafts = items.filter(f => f.review_status === 'draft');
+
+    // Stats
+    const total = items.length;
+    const approvedCount = approved.length;
+    const completionPct = total > 0 ? Math.round((approvedCount / total) * 100) : 0;
+
+    document.getElementById('total-count').textContent = total;
+    document.getElementById('flagged-count').textContent = flagged.length;
+    document.getElementById('pending-count').textContent = pendingKyle.length + pendingAemon.length;
+    document.getElementById('approved-count').textContent = approvedCount;
+    document.getElementById('completion-pct').textContent = completionPct + '%';
+    document.getElementById('progress-fill').style.width = completionPct + '%';
+
+    let html = '';
+
+    // Flagged
+    if (flagged.length > 0) {
+      html += buildSection('Flagged for Review', flagged, 'flagged', flagged.length, false);
+    }
+
+    // Pending Kyle
+    html += buildSection('Pending Kyle Review', pendingKyle, 'pending-kyle', pendingKyle.length, false);
+
+    // Pending Aemon
+    html += buildSection('Pending Aemon Review', pendingAemon, 'pending-aemon', pendingAemon.length, false);
+
+    // Revision Requested
+    if (revisions.length > 0) {
+      html += buildSection('Revision Requested', revisions, 'revisions', revisions.length, false);
+    }
+
+    // Drafts
+    if (drafts.length > 0) {
+      html += buildSection('Drafts', drafts, 'drafts', drafts.length, true);
+    }
+
+    // Approved (collapsible)
+    html += buildSection('Approved', approved, 'approved', approvedCount, true);
+
+    main.innerHTML = html;
+  }
+
+  function buildSection(title, items, cssClass, count, collapsible) {
+    const sectionClass = cssClass === 'flagged' ? 'section flagged' : 'section';
+    const contentClass = collapsible ? 'section-content collapsed' : 'section-content';
+    const toggleBtn = collapsible
+      ? `<button class="section-toggle" onclick="toggleSection(this)">Show</button>`
+      : '';
+
+    let html = `<div class="${sectionClass}">
+      <div class="section-header">
+        <h2>${title}</h2>
+        <span class="section-count">${count}</span>
+        ${toggleBtn}
+      </div>
+      <div class="${contentClass}">`;
+
+    if (items.length === 0) {
+      html += '<div class="empty">No items</div>';
+    } else {
+      items.forEach(f => {
+        const statusLabel = f.review_status.replace(/_/g, ' ');
+        const flagTag = f.flagged && f.flagged_reason
+          ? `<span class="flag-tag">${f.flagged_reason}</span>`
+          : '';
+
+        const showApprove = !['kyle_approved', 'final_approved', 'aemon_approved'].includes(f.review_status);
+        const showRevision = !['revision_requested'].includes(f.review_status);
+
+        html += `<div class="file-card">
+          <div class="file-info">
+            <div class="file-name">${f.title || f.file_name} ${flagTag}</div>
+            <div class="file-meta">
+              <span>${f.tier}</span>
+              <span>${f.category.replace(/_/g, ' ')}</span>
+              <span>${f.last_modified}</span>
+              ${f.revision_notes ? `<span style="color: var(--orange);">Note: ${f.revision_notes}</span>` : ''}
+            </div>
+          </div>
+          <span class="badge badge-${f.review_status}">${statusLabel}</span>
+          <div class="actions">
+            ${showApprove ? `<button class="btn btn-approve" onclick="approveFile('${f.relative_path}')">Approve</button>` : ''}
+            ${showRevision ? `<button class="btn btn-revision" onclick="openRevisionModal('${f.relative_path}', '${(f.title || f.file_name).replace(/'/g, "\\'")}')">Revision</button>` : ''}
+          </div>
+        </div>`;
+      });
+    }
+
+    html += '</div></div>';
+    return html;
+  }
+
+  function toggleSection(btn) {
+    const content = btn.closest('.section-header').nextElementSibling;
+    content.classList.toggle('collapsed');
+    btn.textContent = content.classList.contains('collapsed') ? 'Show' : 'Hide';
+  }
+
+  async function approveFile(filePath) {
+    try {
+      const res = await fetch(`${API}/api/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_path: filePath })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      showToast('Approved: ' + filePath.split('/').pop());
+      await loadFiles();
+    } catch (err) {
+      showToast('Error: ' + err.message);
+    }
+  }
+
+  function openRevisionModal(filePath, label) {
+    revisionTarget = filePath;
+    document.getElementById('revision-file-label').textContent = label;
+    document.getElementById('revision-notes').value = '';
+    document.getElementById('revision-modal').classList.add('active');
+  }
+
+  function closeRevisionModal() {
+    document.getElementById('revision-modal').classList.remove('active');
+    revisionTarget = null;
+  }
+
+  async function submitRevision() {
+    const notes = document.getElementById('revision-notes').value.trim();
+    if (!notes) { showToast('Please enter revision notes.'); return; }
+    try {
+      const res = await fetch(`${API}/api/revision`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_path: revisionTarget, notes })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      closeRevisionModal();
+      showToast('Revision requested: ' + revisionTarget.split('/').pop());
+      await loadFiles();
+    } catch (err) {
+      showToast('Error: ' + err.message);
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // Filter change handlers
+  document.getElementById('filter-tier').addEventListener('change', renderDashboard);
+  document.getElementById('filter-category').addEventListener('change', renderDashboard);
+
+  // Initial load
+  loadFiles();
+</script>
+
+</body>
+</html>
