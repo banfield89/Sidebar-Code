@@ -16,6 +16,54 @@
 
 *(Day-session agents append here as they encounter questions. Kyle edits in the evening.)*
 
+### Session 2 — FastAPI skeleton + CI
+
+`[S2]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/main.py
+- **Question:** Basic auth credentials for /admin/dashboard. Playbook parks this.
+- **Agent default:** Read from `ADMIN_USER` and `ADMIN_PASSWORD` env vars. Fails closed with 503 "admin dashboard not configured" if either is unset. Constant-time comparison via `secrets.compare_digest`. Matches parked default in the playbook.
+- **Logged:** 2026-04-13
+
+---
+
+`[S2]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/main.py, .github/workflows/ci.yml, stripe-delivery/render.yaml
+- **Question:** Python runtime version. Playbook parks 3.12.
+- **Agent default:** Python 3.12 everywhere (CI, Render, local dev target). Matches Render default. Production code is written against 3.12 stdlib; agent's local pytest runs on 3.14 which is a superset — tests pass on both.
+- **Logged:** 2026-04-13
+
+---
+
+`[S2]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/main.py /health endpoint
+- **Question:** How to resolve the git SHA at runtime so /health can return it?
+- **Agent default:** Check `GIT_COMMIT` env var first (Render will be configured to inject this), fall back to `RENDER_GIT_COMMIT`, fall back to `git rev-parse --short HEAD` for local dev, return "unknown" if all three fail. Render may need a `GIT_COMMIT=$RENDER_GIT_COMMIT` env var mapping added in the service settings — flagging for Session 2 deploy step.
+- **Logged:** 2026-04-13
+
+---
+
+`[S2]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/main.py /health endpoint
+- **Question:** Source of the `env` field in /health response (staging vs prod vs development).
+- **Agent default:** Read from `SIDEBARCODE_ENV` env var. Default value "development" when unset. Render staging service should set `SIDEBARCODE_ENV=staging`; prod sets `=prod`. Flagging so Kyle adds this env var during the Render blueprint apply step.
+- **Logged:** 2026-04-13
+
+---
+
+`[S2]` `[Status: PENDING]`
+- **File:** stripe-delivery/.github/workflows/ci.yml
+- **Question:** gitleaks install method (playbook listed it in requirements.txt but it's a Go binary, not pip).
+- **Agent default:** Installed via `gitleaks/gitleaks-action@v2` GitHub Action in CI. No local pip install. Resolves the Session 1 parking lot entry about this.
+- **Logged:** 2026-04-13
+
+---
+
+`[S2]` `[Status: PENDING]` — **Deploy phase NOT YET RUN.**
+- Session 2 was split into (a) autonomous coding phase and (b) Kyle-gated deploy phase per Option A in-session. Coding phase is complete and committed. Deploy phase requires Kyle to: (1) run Render Blueprint apply on `stripe-delivery/render.yaml`, (2) paste 6 env vars into the new service (STRIPE_SECRET_KEY, POSTMARK_API_TOKEN, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, plus ADMIN_USER/ADMIN_PASSWORD/SIDEBARCODE_ENV/GIT_COMMIT), (3) optionally create staging.sidebarcode.com CNAME or accept onrender.com subdomain, (4) smoke test /health returns 200. Exit criteria (staging /health green, CI green) cannot be declared met until these steps complete.
+- **Logged:** 2026-04-13
+
+---
+
 ### Session 1 — repo scaffolding
 
 `[S1]` `[Status: PENDING]`
