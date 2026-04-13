@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+stripe
+boto3
+python-multipart
+postmarker
+pyyaml
+pytest
+httpx
+python-dotenv
+
+# gitleaks is a Go binary, not a pip package. Installed separately in CI
+# (see Session 2 GitHub Actions workflow) via zricethezav/gitleaks-action.
+# Listed here for visibility per Session 1 requirements.txt task.

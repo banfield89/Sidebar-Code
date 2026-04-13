@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: sidebarcode-api
+    runtime: python
+    rootDir: stripe-delivery
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    disk:
+      name: sidebarcode-data
+      mountPath: /var/data
+      sizeGB: 5
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: POSTMARK_API_TOKEN
+        sync: false
+      - key: KYLE_ALERT_EMAIL
+        sync: false
+      - key: SQLITE_PATH
+        value: /var/data/sidebarcode.db
+      - key: SITE_BASE_URL
+        sync: false
+
+  - type: web
+    name: sidebarcode-static
+    runtime: static
+    rootDir: .
+    buildCommand: ""
+    staticPublishPath: .
+    autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://sidebarcode-api.onrender.com/api/*
