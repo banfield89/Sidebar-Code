@@ -56,6 +56,19 @@ services:
         sync: false
       - key: CRON_SECRET
         sync: false
+      # SP3 Steward env vars — Session 1 declares, later sessions consume
+      - key: STEWARD_ENABLED
+        sync: false
+      - key: STEWARD_AEMON_ENABLED
+        sync: false
+      - key: POSTMARK_INBOUND_SECRET
+        sync: false
+      - key: STEWARD_INTAKE_HMAC_SECRET
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CLASSIFIER_LLM_ENABLED
+        sync: false
 
   # ---------------------------------------------------------------------------
   # Session 8 cron jobs
@@ -119,6 +132,51 @@ services:
     buildCommand: pip install -r requirements.txt
     schedule: "30 10 * * *"  # 03:30 America/Phoenix == 10:30 UTC
     startCommand: python scripts/cleanup_webhook_debug_log.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: SP2_API_URL
+        value: https://sidebarcode-api.onrender.com
+      - key: CRON_SECRET
+        fromService:
+          type: web
+          name: sidebarcode-api
+          envVarKey: CRON_SECRET
+
+  # ---------------------------------------------------------------------------
+  # SP3 Steward cron jobs — Session 1 declares as STUBS, later sessions wire
+  # ---------------------------------------------------------------------------
+  # Per the SP2 Session 8 lesson: declaring all SP3 services in render.yaml at
+  # Session 1 lets Kyle re-apply the Blueprint once and avoid the mid-build
+  # Blueprint dance. The startCommand scripts are stubs in Session 1; they
+  # print and exit 0. Session 2 fills in the HTTP-trigger logic.
+  - type: cron
+    name: sidebarcode-steward-tick
+    runtime: python
+    rootDir: stripe-delivery
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    schedule: "* * * * *"  # every minute — Steward scheduler tick
+    startCommand: python scripts/trigger_steward_tick.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: SP2_API_URL
+        value: https://sidebarcode-api.onrender.com
+      - key: CRON_SECRET
+        fromService:
+          type: web
+          name: sidebarcode-api
+          envVarKey: CRON_SECRET
+
+  - type: cron
+    name: sidebarcode-steward-nurture-enroll
+    runtime: python
+    rootDir: stripe-delivery
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    schedule: "0 16 * * *"  # 09:00 America/Phoenix == 16:00 UTC (no DST)
+    startCommand: python scripts/trigger_steward_nurture_sweep.py
     envVars:
       - key: PYTHON_VERSION
         value: "3.12"

@@ -10,18 +10,20 @@ from fastapi import FastAPI
 
 from api.admin import router as admin_router
 from api.checkout import router as checkout_router
+from api.inbound import router as inbound_router
 from api.pages import router as pages_router
 from api.webhook import router as webhook_router
 
 app = FastAPI(
-    title="Sidebar Code SP2 API",
-    description="Checkout, webhook, and delivery service for sidebarcode.com",
-    version="0.1.0",
+    title="Sidebar Code SP2 + SP3 API",
+    description="Checkout, webhook, delivery, and Steward service for sidebarcode.com",
+    version="0.2.0",
 )
 app.include_router(checkout_router)
 app.include_router(webhook_router)
 app.include_router(admin_router)
 app.include_router(pages_router)
+app.include_router(inbound_router)
 
 
 def _resolve_git_sha() -> str:

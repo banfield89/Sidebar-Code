@@ -186,4 +186,31 @@ CREATE TABLE IF NOT EXISTS tech_overview_versions (
     version_hash    TEXT PRIMARY KEY,
     first_seen_at   TEXT NOT NULL
 );
+
+-- SP3 Session 1: Steward inbound debug log (raw Postmark payloads for audit)
+CREATE TABLE IF NOT EXISTS inbound_emails (
+    inbound_id          TEXT PRIMARY KEY,
+    postmark_message_id TEXT NOT NULL,
+    from_email          TEXT NOT NULL,
+    from_name           TEXT,
+    to_email            TEXT NOT NULL,
+    subject             TEXT,
+    text_body           TEXT,
+    html_body           TEXT,
+    in_reply_to         TEXT,
+    raw_payload_json    TEXT NOT NULL,
+    matched_lead_id     TEXT,
+    classification      TEXT,
+    send_tier           TEXT,
+    received_at         TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_inbound_postmark_id
+    ON inbound_emails(postmark_message_id);
+CREATE INDEX IF NOT EXISTS idx_inbound_in_reply_to
+    ON inbound_emails(in_reply_to);
+CREATE INDEX IF NOT EXISTS idx_inbound_matched_lead
+    ON inbound_emails(matched_lead_id);
+CREATE INDEX IF NOT EXISTS idx_inbound_received_at
+    ON inbound_emails(received_at);
 """

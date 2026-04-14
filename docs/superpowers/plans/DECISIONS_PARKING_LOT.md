@@ -442,88 +442,327 @@ These are the open questions from the spec that, if left unanswered, force the a
   - Parser Trial: $197 (already locked in Playbook)
   - Full Litigation Suite: $2,997 (already locked in Playbook)
 
-  **Consequence — file updates queued for post-SP1 swap-in session (NOT day sessions):**
-  - index.html: replace 4 range strings with single prices
-  - Product Catalog/_playbook/PRICING_LOGIC.md: update tier headers and body references
-  - Product Catalog/_playbook/TIER_BOUNDARIES.md: update tier headers and "Language when asked for more" quote blocks
-  - Sweep INQUIRY_RESPONSE_TEMPLATES.md, OBJECTION_HANDLING.md, POSITIONING_CORE.md, SALES_PLAYBOOK.md for any echoed range references
-  - Real CATALOG_INDEX.yaml (when SP1 ships) must use these prices
+  **Consequence — file updates queued for post-SP1 swap-in session (NOT day sessions). FULL AUDIT 2026-04-13.**
 
-  Day sessions through Session 8 continue to use mock_catalog_index.yaml — the mock prices do NOT need to match these locked prices because mock tiers exist only for Stripe test mode infrastructure validation.
+  ### Range-language updates (replace ranges with single locked prices)
+  - **index.html:** replace 4 range strings — Foundation `$5,000 – $7,500` → `$5,995`; Implementation `$10,000 – $15,000` → `$12,995`; Modernization `$25,000 – $40,000` → `$29,995`; Practice Area Pack `$15,000 – $25,000` → `$19,995`
+  - **Product Catalog/CATALOG_INDEX.yaml:** for each consulting/workflow tier, set `price_min == price_max == locked_price` and rewrite `price_display`:
+    - consulting_foundation: price_min=5995, price_max=5995, price_display="$5,995"
+    - consulting_implementation: price_min=12995, price_max=12995, price_display="$12,995"
+    - consulting_modernization: price_min=29995, price_max=29995, price_display="$29,995"
+    - custom_workflows_single: already flat, no change ($5,000)
+    - custom_workflows_multi: already flat, no change ($10,000)
+    - custom_workflows_practice_area: price_min=19995, price_max=19995, price_display="$19,995"
+    - This file drives the Stripe sync script — it is the canonical source for live provisioning.
+  - **Product Catalog/_playbook/PRICING_LOGIC.md:** update 4 tier headers (Tier 3 Foundation, Tier 4 Implementation, Tier 5 Modernization, Tier 8 Practice-Area)
+  - **Product Catalog/_playbook/TIER_BOUNDARIES.md:** update 4 tier headers + 6 quote blocks containing range language
+  - **Product Catalog/_playbook/SALES_PLAYBOOK.md:** update ~25 range references across tier headers, quote blocks, deep dives, and target buyer sections
+  - **Product Catalog/_playbook/OBJECTION_HANDLING.md:** update any range-language quotes (mostly clean — only the math fix below applies)
+  - INQUIRY_RESPONSE_TEMPLATES.md and POSITIONING_CORE.md verified clean of explicit price references — no changes needed
+
+  ### Internal math fixes (Category B — old midpoint math baked into example sentences)
+  These produce wrong numbers with the new locked prices and must be corrected during swap-in:
+
+  - **B1.** OBJECTION_HANDLING.md:134 AND SALES_PLAYBOOK.md:769 — `Full Suite plus Implementation at $15,500, year one` → change `$15,500` to `$15,992` ($2,997 + $12,995). Round to `$16,000` if cleaner narrative is preferred.
+  - **B2.** PRICING_LOGIC.md:49 AND SALES_PLAYBOOK.md:505 — `One engagement per month at $12,500 = $150,000/year` → change to `$12,995 = $155,940/year`. Round to `~$13,000 = ~$156,000` if narrative cleanness matters.
+  - **B3.** PRICING_LOGIC.md:111 AND SALES_PLAYBOOK.md:565 — `On a $12,500 Implementation engagement, that is $1,875 off` (15% early-adopter discount) → change to `$12,995 ... $1,949 off` (15% of $12,995 = $1,949.25, round to $1,949 or $1,950).
+  - **B4.** SALES_PLAYBOOK.md:308 — `What is the extra $5,000 to $8,000 buying me over Foundation?` → change to `extra $7,000` ($12,995 − $5,995 = $7,000 exact).
+  - **B5.** SALES_PLAYBOOK.md:118 — `Foundation price at $5,000 and immediately asks what the $10,000 package includes` → change to `Foundation price at $5,995 and immediately asks what the $12,995 package includes`.
+  - **B5b.** SALES_PLAYBOOK.md:279 — `That is what the $5,000 buys` (referring to Foundation) → change to `That is what the $5,995 buys`.
+  - **B5c.** SALES_PLAYBOOK.md:224-225, 244, 274 and similar — verify Foundation `$5,000` references and Implementation `$10,000` bare-number references are updated to `$5,995` and `$12,995` respectively. Sweep with grep before commit.
+
+  ### Solo Launch Package — A3 decision (mark as future, do not ship at MVP)
+  The Sales Playbook describes a 9th tier ("Solo Launch Package") at $4,500 / $1,500 with prior Full Suite that exists in narrative only — no CATALOG_INDEX.yaml entry, no Product Catalog folder, no website tier card, no Stripe product. **Decision 2026-04-13: A3 — mark as future, do not build at MVP.** Solo Launch is a real product idea that needs catalog scaffolding to ship; that work is post-MVP.
+
+  **Required swap-in actions for Solo Launch:**
+  - **PRICING_LOGIC.md** lines 83 onward: move the Solo Launch section from the active tier list into a clearly-labeled `## Future Offerings (Post-MVP)` section at the bottom. Add a one-line preface: "The following offerings are documented for strategic continuity but are NOT available for purchase at MVP launch. Steward and other agents must NOT quote prices or accept inquiries for these tiers until they are formally promoted into the active catalog."
+  - **OBJECTION_HANDLING.md** line 172: rewrite the "I am about to start a solo practice" objection response. Remove the Solo Launch quote. Replace with a steering response that points solo practitioners toward Parser Trial or Full Suite as the entry, and notes that a dedicated solo-practitioner package is in development. Suggested rewrite: `"For new solos, the right entry is the Parser Trial at $197 or the Full Litigation Suite at $2,997 — both are firm-wide, one-time, and you own them forever. A dedicated Solo Launch Package with administrative templates and a launch session is in development for a future release. If you want a custom scoping conversation about your specific solo setup in the meantime, that is a paid hourly consulting engagement."`
+  - **SALES_PLAYBOOK.md** lines 188, 441, 539, 1029: move all three Solo Launch sections into the same `Future Offerings (Post-MVP)` section. Update the Section 4 tier catalog header to read "8 Active Tiers" (not 8+1). Update the version 1.0 changelog at line 1029 to note "Solo Launch Package documented as Future Offering 2026-04-13 per SP2 swap-in audit; not shipping at MVP."
+  - **SALES_PLAYBOOK.md** line 142: in the "Solo practitioner" target buyer flow, remove the Solo Launch reference and replace with the steering language above.
+  - **Steward (SP3) impact:** Steward MUST be configured to recognize Solo Launch as out-of-catalog and never quote it. Document this in `_ops/AGENT_PROTOCOLS.md` during the SP3 build.
+  - **No website changes** — Solo Launch was never on index.html.
+  - **No CATALOG_INDEX.yaml changes** — Solo Launch was never indexed.
+
+  ### Day session safety
+  Day sessions through Session 8 continue to use mock_catalog_index.yaml — the mock prices do NOT need to match these locked prices because mock tiers exist only for Stripe test mode infrastructure validation. NONE of the file updates above happen during day sessions.
 - **Logged:** 2026-04-13
 - **Confirmed:** 2026-04-13
 
 ---
 
-`[PRE]` `[Status: PENDING]`
+`[PRE]` `[Status: CONFIRMED]`
 - **File:** specs/2026-04-13-stripe-delivery-design.md Appendix B Q2
 - **Question:** Preferred scheduling tool for consulting handoff: Calendly, Cal.com, or other?
 - **Agent default:** Cal.com with URL `https://cal.com/kylebanfield/foundation` (spec example). Template merge var `{{ scheduling_link }}` is tier-specific via catalog.
 - **Why it matters:** Session 7 wires the scheduling link into the consulting receipt email. Changing tools later is a find/replace, but locking now avoids placeholder-in-production risk.
-- **Kyle response:**
+- **Kyle response (LOCKED 2026-04-13):**
+  Cal.com confirmed. Dual-calendar setup:
+  - **Primary calendar (bookings land here):** kyle@sidebarcode.com (Gmail)
+  - **Conflict calendar (busy-block only, no event creation):** CHDB Outlook 365
+  - URL pattern: `https://cal.com/kylebanfield/{tier-slug}`
+  - One Cal.com event type per consulting/workflow tier with tier-appropriate duration, buffer time, and intake questions
+
+  **Tier slug mapping (used in catalog `scheduling_link` field):**
+  - foundation → `https://cal.com/kylebanfield/foundation`
+  - implementation → `https://cal.com/kylebanfield/implementation`
+  - modernization → `https://cal.com/kylebanfield/modernization`
+  - workflow-single → `https://cal.com/kylebanfield/workflow-single`
+  - workflow-multi → `https://cal.com/kylebanfield/workflow-multi`
+  - workflow-practice-area → `https://cal.com/kylebanfield/workflow-practice-area`
+
+  **Consequences queued:**
+  - Kyle creates 6 Cal.com event types (one per consulting/workflow tier) BEFORE Session 7 manual verification — without these, the consulting_receipt email links 404
+  - Cal.com dual-calendar conflict checking configured manually in Cal.com settings (Gmail + Outlook 365 both connected)
+  - Mock catalog `scheduling_link` values use placeholder URLs; real catalog (post-SP1) uses the slugs above
 - **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
 
 ---
 
-`[PRE]` `[Status: PENDING]`
+`[PRE]` `[Status: CONFIRMED]`
 - **File:** specs/2026-04-13-stripe-delivery-design.md Appendix B Q3
 - **Question:** Transactional email provider: Postmark or Resend?
 - **Agent default:** Postmark (spec default; superior deliverability for transactional; template system is mature).
 - **Why it matters:** Session 1 creates the account. Swapping providers after Session 7 means rewriting `send_email` calls and re-creating 4 templates. Not catastrophic but wasted time.
-- **Kyle response:**
+- **Kyle response (LOCKED 2026-04-13):** Postmark confirmed. Account already created. Domain verification status to be confirmed during Session 1 external account checklist. No code changes from spec default.
 - **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
 
 ---
 
-`[PRE]` `[Status: PENDING]`
+`[PRE]` `[Status: CONFIRMED]`
 - **File:** specs/2026-04-13-stripe-delivery-design.md Appendix B Q4
 - **Question:** Admin dashboard auth: basic auth (MVP) or simple login form?
 - **Agent default:** Basic auth with `ADMIN_USER` / `ADMIN_PASSWORD` env vars, fail closed if unset.
 - **Why it matters:** Session 8 builds the dashboard. Upgrading to a login form later is a 1-hour change. Basic auth is fine for single-user MVP.
-- **Kyle response:**
+- **Kyle response (LOCKED 2026-04-13):** Basic auth confirmed. Single-user (Kyle only) for foreseeable future. Non-guessable URL + env-var credentials sufficient. Matches spec default. No code changes.
 - **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
 
 ---
 
-`[PRE]` `[Status: PENDING]`
+`[PRE]` `[Status: CONFIRMED]`
 - **File:** specs/2026-04-13-stripe-delivery-design.md Appendix B Q5
 - **Question:** Parser Trial → Full Suite upsell coupon in the download email? If yes, amount and TTL?
 - **Agent default:** NO coupon at MVP. Session 7 sends a clean download email without upsell. Add later if conversion data supports it.
 - **Why it matters:** Adding a coupon means creating a Stripe Coupon + Promotion Code + wiring the merge var into the template. ~1 hour of work. Skipping at MVP is fine.
-- **Kyle response:**
+- **Kyle response (LOCKED 2026-04-13):** No coupon at MVP. Download email focuses on delivering the ZIP and quick-start instructions only. Revisit upsell strategy after organic upgrade data exists. Matches spec default.
 - **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
 
 ---
 
-`[PRE]` `[Status: PENDING]`
+`[PRE]` `[Status: CONFIRMED]`
 - **File:** specs/2026-04-13-stripe-delivery-design.md Appendix B Q6
 - **Question:** Refund policy: 7-day no-questions-asked, or case-by-case?
 - **Agent default:** Case-by-case, documented in ToS as "refunds at Sidebar Code's discretion within 30 days of purchase." No automated refund button.
 - **Why it matters:** Affects ToS copy and Aemon review. A "no-questions 7-day" policy is cleaner legally but means more refund losses on impulse buys.
-- **Kyle response:**
+- **Kyle response (LOCKED 2026-04-13):** Case-by-case refunds within 30 days at Kyle's sole discretion. No automated refund flow. Manual processing via Stripe dashboard. Aligns with litigator-pragmatism principle. Matches spec default.
+
+  **Consequences queued (Aemon review block):**
+  - terms.html refund clause must reflect "case-by-case within 30 days at Sidebar Code's sole discretion" language — Aemon to draft and approve BEFORE Session 7 templates ship
+  - consulting_receipt and product_download Postmark templates must include refund policy reference (link to ToS), not embedded language
+  - Refund handler in webhook (Session 6, already coded) is correct as-is — no code change. The decision affects ONLY the customer-facing legal language.
 - **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
 
 ---
 
-`[PRE]` `[Status: PENDING]`
+`[PRE]` `[Status: CONFIRMED — DEVIATION FROM SPEC DEFAULT]`
 - **File:** specs/2026-04-13-stripe-delivery-design.md Appendix B Q7
 - **Question:** Failed-delivery retry strategy: auto-retry N times before alerting, or alert on first failure?
 - **Agent default:** Alert Kyle on FIRST failure. Stripe's built-in webhook retry handles reprocessing. The alert is for visibility, not intervention required.
 - **Why it matters:** Lower threshold = more noise but faster response. Session 7 wires this.
-- **Kyle response:**
+- **Kyle response (LOCKED 2026-04-13):** **Override spec default.** One automatic in-process retry before alerting Kyle. If first attempt fails, system retries once (with a short backoff). If retry also fails, send alert notification. Stripe's built-in webhook retry handles reprocessing of the entire event independently; the in-process retry-once governs Kyle-facing visibility alerts only. Goal: filter transient blips (R2 hiccup, Postmark momentary outage) without burying real failures.
+
+  **Consequences queued — Session 7 code change required:**
+  - `build_and_deliver_zip` in `stripe-delivery/api/delivery.py` must wrap each external call (R2 upload, Postmark send) in a retry-once-then-raise pattern. Suggested: simple `for attempt in range(2):` with 1-second backoff between attempts, raise on second failure.
+  - `delivery_failures` row is written ONLY after the second failure (not the first).
+  - `delivery_failure_alert` Postmark email is sent ONLY after the second failure.
+  - On second failure, the function still re-raises so Stripe's webhook retry kicks in (don't suppress).
+  - Add unit test: `test_deliver_zip_succeeds_on_retry_after_one_failure` (mock R2 to fail once then succeed).
+  - Add unit test: `test_deliver_zip_alerts_only_on_second_failure` (mock R2 to fail twice).
+  - Update INCIDENT_RUNBOOK.md "delivery failure" section to reflect the retry-once-then-alert behavior so Kyle understands when an alert means "transient" vs "broken pipe."
+  - This change requires updating the SP2 spec Section 7 "Retry strategy" subsection AND the Session 7 task list before the day-coding agent runs Session 7.
 - **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
 
 ---
 
-`[PRE]` `[Status: PENDING]`
+`[PRE]` `[Status: CONFIRMED]`
 - **File:** specs/2026-04-13-stripe-delivery-design.md Appendix B Q8
 - **Question:** Consulting tiers: pay in full at Checkout, or deposit + balance due?
 - **Agent default:** Pay in full at Checkout. Simpler for MVP. Deposit model requires invoicing infrastructure.
 - **Why it matters:** Changing to deposit model means adding Stripe Invoicing integration later. Real but not Session-1 blocking.
-- **Kyle response:**
+- **Kyle response (LOCKED 2026-04-13):** Pay in full at Checkout. No deposit/balance model. Consulting buyers are pre-qualified through Kyle's manual "notify Kyle" flow before seeing a checkout link — sticker shock is handled in conversation, not at payment. Matches spec default.
+- **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
+
+---
+
+---
+
+## SP3 — Steward Operationalized
+
+**Spec:** [2026-04-13-steward-operationalized-design.md](../specs/2026-04-13-steward-operationalized-design.md)
+**Playbook:** [2026-04-13-sp3-day-session-playbook.md](2026-04-13-sp3-day-session-playbook.md)
+**Started:** 2026-04-13 (Session 1)
+
+### SP3 Pre-session locks (Spec Appendix B — locked BEFORE Session 1)
+
+`[PRE Q1]` `[Status: CONFIRMED]` — **Auto-send tier policy**
+- **File:** specs/2026-04-13-steward-operationalized-design.md Section 3
+- **Question:** Should Steward auto-send any drafts, and if so, which?
+- **Choice (LOCKED 2026-04-13):** Four tiers — `TIER_AUTO`, `TIER_REVIEW`, `TIER_ESCALATE`, `TIER_SILENT`. TIER_AUTO eligible for: FAQ replies, intake acknowledgments, unsubscribe confirms, onboarding Day 1 and Day 2, refund-confirmed receipts. Everything else routes to TIER_REVIEW or higher. Aemon reviews every TIER_AUTO send before it ships and can escalate to REVIEW. Aemon never de-escalates.
+- **Why:** Strict zero-auto-send turned Kyle into the bottleneck for trivial work. Tiering puts the human in the loop where judgment matters and out of the loop where it doesn't. Aemon's review on a deterministic FAQ template is genuine quality control.
+- **Reversibility:** Per-template tier overrides are exposed in the Steward admin panel. Kyle can flip a template from AUTO to REVIEW at any time without a code change.
+- **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
+
+---
+
+`[PRE Q2]` `[Status: CONFIRMED]` — **Aemon review path**
+- **File:** specs/2026-04-13-steward-operationalized-design.md Section 4
+- **Question:** Does Aemon review before Kyle, after Kyle, or as a parallel gate?
+- **Choice (LOCKED 2026-04-13):** **Serial: Aemon-then-Kyle.** Every customer-facing draft goes through Aemon first; Aemon's verdict and annotations are attached to the draft when it lands in Kyle's queue (or auto-sends for TIER_AUTO).
+- **Why:** Single screen, single decision, full context. Avoids the "wait, I already approved this" loop that parallel review creates. Aemon catches legal/compliance exposure; Kyle catches voice and judgment. Both are necessary; ordering them serially gives Kyle the better experience.
+- **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
+
+---
+
+`[PRE Q3]` `[Status: CONFIRMED — HARD RULE, NEVER REVISIT WITHOUT NEW SPEC]` — **Inbox scope**
+- **File:** specs/2026-04-13-steward-operationalized-design.md Section 12
+- **Question:** Does Steward monitor `kyle@sidebarcode.com` only, or also `kyle@chdblaw.com`?
+- **Choice (LOCKED 2026-04-13):** **`kyle@sidebarcode.com` only. CHDB Law inbox is hard-prohibited at the code level.** Every code path that touches an email address (inbound webhook, outbound send, lead insertion) checks for `chdblaw.com` (case-insensitive) and rejects on hit. There is no override flag, no env var to relax the rule, no exceptions. Aemon flags any draft body referencing CHDB Law as HIGH severity.
+- **Why:** Routing client-firm email through a Sidebar Code agent creates client confidentiality, attorney-client privilege, and corporate-veil exposure between CHDB Law, LLP and Banfield Consulting, LLC d/b/a Sidebar Code. Aemon will (correctly) refuse to clear any workflow that mixes the two. Kyle's standing instruction (2026-04-13): **NEVER use CHDB email for anything related to Sidebar Code.** Wire this in everywhere.
+- **Code enforcement:** `_enforce_chdb_separation()` in `api/steward/enforcement.py`, called from inbound, outbox, intake, and crm.insert_lead. Unit tests assert it raises on every documented field.
+- **Reversibility:** None. This is a hard architectural constraint. Revisiting requires a new spec, not a config change.
+- **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
+
+---
+
+`[PRE Q4]` `[Status: CONFIRMED]` — **Worker model**
+- **File:** specs/2026-04-13-steward-operationalized-design.md Section 2 design decisions
+- **Question:** Should Steward run as a long-running worker (Render Background Worker) or as HTTP routes + cron-triggered HTTP endpoints inside the existing web service?
+- **Choice (LOCKED 2026-04-13):** **No long-running worker.** Inbound is an HTTP route on the existing `sidebarcode-api` web service. Scheduled outbound runs as Render Cron Jobs hitting HTTP admin endpoints with `CRON_SECRET` Bearer auth. Both share the existing SQLite DB on the web service's persistent disk. Do NOT propose Background Worker, sidecar process, or async task loop architectures.
+- **Why:** Render persistent disks are per-service. SP2 hard-learned this in Session 8 (cron jobs cannot directly access `/var/data/sidebarcode.db`). A Background Worker would have its own disk and could not read SQLite. A shared-disk SQLite invites concurrent-writer corruption. The web service already owns the DB and the schema; Steward extends it in-process.
+- **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
+
+---
+
+`[PRE Q5]` `[Status: CONFIRMED]` — **Weekly business intelligence digest**
+- **File:** specs/2026-04-13-steward-operationalized-design.md Section 15 (out of scope)
+- **Question:** Should SP3 build a weekly BI digest with revenue, conversion, and pipeline metrics?
+- **Choice (LOCKED 2026-04-13):** **Dropped from SP3 scope.** Replaced with a Steward-specific operational metrics panel inside the admin dashboard (drafts pending, draft-to-send latency, Aemon flag rate, classification confusion matrix, onboarding completion, nurture conversion).
+- **Why:** Citadel is the analytics agent per CLAUDE.md. Building BI inside Steward forces a refactor when Citadel ships. Steward observability is "is my agent working correctly," not "is my business healthy." They are different concerns.
+- **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
+
+---
+
+`[PRE Q6]` `[Status: CONFIRMED]` — **Classification approach**
+- **File:** specs/2026-04-13-steward-operationalized-design.md Section 2 design decisions
+- **Question:** Rule-based, pure LLM, or hybrid?
+- **Choice (LOCKED 2026-04-13):** **Rule-based first, LLM fallback for ambiguous.** The rule-based classifier handles the deterministic 80% (spam, autoresponders, FAQ, scheduling, unsubscribe) with no API cost and full debuggability. LLM fallback (Anthropic API, default `claude-haiku-4-5-20251001`) handles the remaining 20% that need judgment. Gated by `CLASSIFIER_LLM_ENABLED` env var so Kyle can disable LLM entirely if needed.
+- **Why:** Pure LLM is expensive at scale and harder to debug. Pure rule-based misses nuance. Hybrid keeps cost down while preserving judgment for the hard cases.
+- **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
+
+---
+
+`[PRE Q7]` `[Status: PENDING]` — **Aemon transport**
+- **File:** specs/2026-04-13-steward-operationalized-design.md Section 2 design decisions
+- **Question:** Does Aemon's review() run as an in-process Python function call, or as an HTTP call to a sibling endpoint within the same web service?
+- **Agent default (Session 1):** In-process Python function call. Faster, simpler, no IPC. The HTTP-wrapped variant can be added later if Aemon is ever extracted to a separate service.
+- **Why it matters:** In-process is the cleaner default for SP3. HTTP wrapping is only worth it if Aemon needs to be a separate process for resource isolation or independent deployment. Neither is true at MVP.
+- **Logged:** 2026-04-13
+- **Confirmed:** PENDING — Kyle to confirm in evening review
+
+---
+
+`[PRE Q8]` `[Status: CONFIRMED]` — **Onboarding drip cadence**
+- **File:** specs/2026-04-13-steward-operationalized-design.md Section 8
+- **Question:** What cadence for the product-purchase onboarding drip?
+- **Choice (LOCKED 2026-04-13):** **Day 1, 2, 7, 14, 30 from purchase.** Day 1 and Day 2 are TIER_AUTO; Day 7, 14, 30 are TIER_REVIEW. Adjustable per-tier in the catalog.
+- **Why:** Standard SaaS onboarding curve, validated by years of industry data. Auto-send for the first two days because they're deterministic welcome and quickstart messages. Review-gated thereafter because content varies by buyer engagement signals.
+- **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
+
+---
+
+`[PRE Q9]` `[Status: CONFIRMED]` — **Cold lead nurture cadence**
+- **File:** specs/2026-04-13-steward-operationalized-design.md Section 8
+- **Question:** How long is the cold lead nurture sequence and how many touches?
+- **Choice (LOCKED 2026-04-13):** **90 days, 6 touches: Day 0, 3, 10, 30, 60, 90.** All TIER_REVIEW. A reply from the lead cancels remaining steps automatically.
+- **Why:** Long enough to outlast typical legal industry buying cycles (often months); short enough that an unresponsive lead is genuinely cold by Day 90. All TIER_REVIEW because cold-lead messaging is voice-sensitive and Kyle wants final approval.
+- **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
+
+---
+
+`[PRE Q10]` `[Status: CONFIRMED]` — **Production feature flag default**
+- **File:** specs/2026-04-13-steward-operationalized-design.md Section 11
+- **Question:** When SP3 ships to production, should `STEWARD_ENABLED` default to true or false?
+- **Choice (LOCKED 2026-04-13):** **`STEWARD_ENABLED=false` in production at first deploy.** Kyle flips to `true` after the staging soak in Session 8 is approved.
+- **Why:** Lets the code ship to production for testing and verification without enabling automation. Single-flag kill switch if anything goes wrong post-launch.
+- **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
+
+---
+
+### Session 1 — Steward scaffolding, inbound webhook stub, schema, render.yaml
+
+`[S3-1]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/inbound.py — Postmark inbound shared-secret mechanism
+- **Question:** Postmark's inbound webhook supports either URL basic-auth (e.g., `https://user:pass@host/api/inbound`) or a custom header for shared-secret validation. Which does Steward expect?
+- **Agent default:** Accept BOTH. The validation function tries `Authorization: Basic ...` first (extracts the password as the secret), then falls back to `X-Postmark-Inbound-Token` header. Kyle picks one in the Postmark dashboard before Session 3 live testing. Both validate against the same `POSTMARK_INBOUND_SECRET` env var via `secrets.compare_digest`.
 - **Logged:** 2026-04-13
 
 ---
+
+`[S3-1]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/inbound.py + render.yaml — STEWARD_ENABLED default per environment
+- **Question:** Spec says STEWARD_ENABLED defaults to `true` in staging and `false` in production. How to encode this without two render.yaml entries?
+- **Agent default:** Code default is `true` (staging-friendly). Render production env has an explicit `STEWARD_ENABLED=false` override that Kyle sets manually before SP3 goes live. Render staging has no override (uses code default = true). Documented in `_ops/INCIDENT_RUNBOOK.md` Session 8 addendum.
+- **Logged:** 2026-04-13
+
+---
+
+`[S3-1]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/db.py — inbound_emails retention
+- **Question:** How long to retain raw inbound payloads in `inbound_emails`?
+- **Agent default:** 90 days. Housekeeping cron added in Session 8 (deletes rows older than `received_at - 90 days`). Spec Section 12 baseline.
+- **Logged:** 2026-04-13
+
+---
+
+`[S3-1]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/steward/enforcement.py — CHDB scan scope
+- **Question:** Spec lists From, FromFull, To, ToFull, Cc, CcFull, Bcc, BccFull. Should the scan also cover ReplyTo, OriginalRecipient, and Headers[] address values?
+- **Agent default:** **Yes — paranoid scan.** Iterate every string-shaped value in the payload (top-level + nested in Headers array) and reject on any `chdblaw.com` substring (case-insensitive). False positives are acceptable; false negatives are not. The CHDB rule has zero exceptions.
+- **Logged:** 2026-04-13
+
+---
+
+`[S3-1]` `[Status: PENDING]`
+- **File:** stripe-delivery/render.yaml — new Render services declared as stubs
+- **Question:** SP2 Session 8 hit the "Render won't silently provision new billable resources" pain mid-build. How to avoid the same in SP3?
+- **Agent default:** Declare BOTH new SP3 cron services (`sidebarcode-steward-tick`, `sidebarcode-steward-nurture-enroll`) in render.yaml in Session 1 with stub start commands. Kyle re-applies the Blueprint once at the end of Session 1 to provision them. Sessions 2-8 fill in the real start commands as code lands. Kyle does not need to re-Blueprint mid-build.
+- **Note:** Stub start commands are shell scripts that print "stub - Session N implements" and exit 0. Render schedules them but they do nothing useful until the real implementation lands. This is the same pattern SP2 should have used and is the actionable lesson learned.
+- **Logged:** 2026-04-13
+
+---
+
+`[S3-1]` `[Status: PENDING]` — **Manual Postmark inbound configuration not yet performed.**
+- Kyle's outside-of-session tasks before Session 3 can be tested live:
+  1. Add MX record at GoDaddy: `sidebarcode.com` → `inbound.postmarkapp.com` priority 10
+  2. In Postmark dashboard → Server → Settings → Inbound: set Webhook URL to `https://sidebarcode-api.onrender.com/api/inbound`
+  3. Set Inbound Domain to `sidebarcode.com`
+  4. Generate a 32-character random string (`openssl rand -hex 16`), set it in Render web service env as `POSTMARK_INBOUND_SECRET`, and configure Postmark to send it as either URL basic-auth or `X-Postmark-Inbound-Token` header (agent supports both).
+- **Logged:** 2026-04-13
 
 ---
 
