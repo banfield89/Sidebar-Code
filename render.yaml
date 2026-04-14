@@ -1,0 +1,56 @@
+# Render Blueprint — Sidebar Code SP2 API service
+# Location: repo root (Render requires render.yaml at the top of the repo).
+#
+# Scope: this Blueprint provisions ONLY the FastAPI backend service for SP2
+# (checkout, webhook, delivery, admin dashboard). The marketing site front-end
+# is managed separately to avoid collision with anything already deployed.
+#
+# If you later want the static site under the same Blueprint, add a second
+# entry under `services:` with runtime: static — see the original draft in
+# stripe-delivery/render.yaml.example for a template.
+
+services:
+  - type: web
+    name: sidebarcode-api
+    runtime: python
+    rootDir: stripe-delivery
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    disk:
+      name: sidebarcode-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: SIDEBARCODE_ENV
+        value: staging
+      - key: SQLITE_PATH
+        value: /var/data/sidebarcode.db
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: POSTMARK_API_TOKEN
+        sync: false
+      - key: KYLE_ALERT_EMAIL
+        sync: false
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SITE_BASE_URL
+        sync: false
