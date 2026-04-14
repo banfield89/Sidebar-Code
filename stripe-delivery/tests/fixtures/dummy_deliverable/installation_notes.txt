@@ -1,0 +1,8 @@
+Sidebar Code dummy deliverable — installation notes
+====================================================
+
+This is a fixture file used by Session 3 tests. It exists to verify that
+build_zip preserves text files in the top level of a delivery folder.
+
+Pretend this is a real installation guide. For testing purposes the contents
+do not matter; only the file's presence and bytes are checked.

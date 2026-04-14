@@ -16,6 +16,46 @@
 
 *(Day-session agents append here as they encounter questions. Kyle edits in the evening.)*
 
+### Session 3 — Zip builder + R2 upload + signed URLs
+
+`[S3]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/delivery.py
+- **Question:** ZIP contents — include the top-level folder name or flatten?
+- **Agent default:** Include (`dummy_deliverable/file.md` not `file.md`). Constant: `ZIP_INCLUDE_TOP_LEVEL_FOLDER = True`. Matches playbook default. Easier to identify what was downloaded when buyers open the zip in Finder/Explorer.
+- **Logged:** 2026-04-13
+
+---
+
+`[S3]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/delivery.py
+- **Question:** ZIP compression level (0-9).
+- **Agent default:** 6 (Python default — balanced speed vs ratio). Constant: `ZIP_COMPRESSION_LEVEL = 6`. Matches playbook default.
+- **Logged:** 2026-04-13
+
+---
+
+`[S3]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/delivery.py
+- **Question:** Max ZIP size warning threshold.
+- **Agent default:** 500 MB. Constant: `ZIP_SIZE_WARNING_BYTES = 500 * 1024 * 1024`. Logs a `logger.warning` if exceeded; does not block delivery. Matches playbook default.
+- **Logged:** 2026-04-13
+
+---
+
+`[S3]` `[Status: PENDING]`
+- **File:** stripe-delivery/tests/test_delivery.py
+- **Question:** R2 integration tests — how to gate so CI doesn't fail without secrets?
+- **Agent default:** `pytest.mark.skipif` on `R2_ACCOUNT_ID/R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY` env presence. Tests skip in CI (no secrets pasted) and run locally when Kyle exports credentials or sources `~/.sidebarcode-secrets.env`. Manual verification script `scripts/manual_zip_test.py` is the human-facing way to validate the live R2 roundtrip.
+- **Logged:** 2026-04-13
+
+---
+
+`[S3]` `[Status: PENDING]` — **Manual R2 verification not yet performed.**
+- The `test_upload_to_r2_roundtrip_against_dev_bucket` and `test_signed_url_returns_404_after_object_deleted` tests are gated on R2 env vars. They were not run by the agent because the agent does not have R2 credentials in its session. Kyle must run them locally before declaring Session 3 fully complete: `set -a && source ~/.sidebarcode-secrets.env && set +a && cd stripe-delivery && python -m pytest tests/test_delivery.py -v -k integration`. Or run `python scripts/manual_zip_test.py` for the human-friendly version that prints a clickable signed URL.
+- **Logged:** 2026-04-13
+
+---
+
 ### Session 2 — FastAPI skeleton + CI
 
 `[S2]` `[Status: PENDING]`

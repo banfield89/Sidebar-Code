@@ -1,0 +1,6 @@
+%PDF-1.4
+% Sidebar Code dummy fixture — not a real PDF, just bytes that look like one.
+% Used by Session 3 zip builder tests to verify binary-ish file handling.
+1 0 obj << /Type /Catalog >> endobj
+trailer << /Root 1 0 R >>
+%%EOF
