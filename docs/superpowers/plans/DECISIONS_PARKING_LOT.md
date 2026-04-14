@@ -16,6 +16,54 @@
 
 *(Day-session agents append here as they encounter questions. Kyle edits in the evening.)*
 
+### Session 8 — Admin dashboard + crons + incident runbook
+
+`[S8]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/admin.py + stripe-delivery/api/main.py
+- **Question:** Admin dashboard route — playbook says `/admin/dashboard`, but Kyle wants room for a future portal that nests multiple tools.
+- **Agent default:** Mounted at **`/admin/sales`** (not `/admin/dashboard`). Per-Kyle architectural decision: leaves `/admin/*` available for a future portal that proxies to multiple tools (Review Dashboard, Sales Admin, future BI). No code in any other tool needs to change today, but the route prefix is now portal-friendly.
+- **Logged:** 2026-04-13
+
+---
+
+`[S8]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/admin.py — resend confirmation
+- **Question:** Should the resend button have a confirmation modal?
+- **Agent default:** Yes — uses inline JS `confirm()` on the form's `onsubmit`. Prevents accidental clicks. Matches playbook default.
+- **Logged:** 2026-04-13
+
+---
+
+`[S8]` `[Status: PENDING]`
+- **File:** stripe-delivery/scripts/send_daily_digest.py + render.yaml
+- **Question:** Daily digest time zone.
+- **Agent default:** America/Phoenix (Kyle's local). Cron schedule is `0 15 * * *` UTC = 08:00 Phoenix year-round (Arizona does not observe DST). Cleanup crons run at 03:00 Phoenix = 10:00 UTC. Matches playbook default.
+- **Logged:** 2026-04-13
+
+---
+
+`[S8]` `[Status: PENDING]`
+- **File:** stripe-delivery/_ops/INCIDENT_RUNBOOK.md
+- **Question:** Should the incident runbook link to Stripe/Postmark/R2 dashboards by name?
+- **Agent default:** Yes. Quick reference table at the bottom lists every dashboard URL Kyle might need at 9pm on Saturday. Matches playbook default.
+- **Logged:** 2026-04-13
+
+---
+
+`[S8]` `[Status: PENDING]`
+- **File:** render.yaml — cron job env var inheritance
+- **Question:** How do cron services get the same env vars as the web service?
+- **Agent default:** `fromService` directive in render.yaml. Each cron job inherits specific env vars (POSTMARK_API_TOKEN, R2_*, SQLITE_PATH) from the `sidebarcode-api` web service rather than duplicating values. Kyle only updates secrets in one place.
+- **Logged:** 2026-04-13
+
+---
+
+`[S8]` `[Status: PENDING]` — **Session 8 manual verification not yet performed.**
+- After deploy, Kyle should: (1) load the admin dashboard at `https://sidebarcode-api.onrender.com/admin/sales` with basic auth, (2) confirm test purchases from Sessions 4-7 are visible, (3) trigger a manual run of `send_daily_digest.py` from the Render Cron service's "Trigger Run" button and confirm digest email arrives, (4) verify the three cron jobs appear as separate services in the Render dashboard with the schedules `0 15 * * *`, `0 10 * * *`, `30 10 * * *`. The Blueprint apply will create the new cron services on the next push — Kyle may need to re-apply the Blueprint to register them.
+- **Logged:** 2026-04-13
+
+---
+
 ### Session 7 — End-to-end delivery wiring + placeholder emails
 
 `[S7]` `[Status: PENDING]`
@@ -378,13 +426,32 @@ These are the open questions from the spec that, if left unanswered, force the a
 
 ---
 
-`[PRE]` `[Status: PENDING]`
+`[PRE]` `[Status: CONFIRMED]`
 - **File:** specs/2026-04-13-stripe-delivery-design.md Appendix B Q1
 - **Question:** Final pricing for all 6 consulting/workflow tiers (Foundation, Implementation, Modernization, Single Workflow, Multi Workflow, Practice Area).
 - **Agent default:** Placeholder amounts in mock catalog only. Day sessions do NOT touch live prices. Kyle must set real prices before the post-SP1 swap-in session.
 - **Why it matters:** Stripe Prices are immutable. Changing a price after provisioning means archiving and recreating. Cheap to fix, but annoying if done repeatedly.
-- **Kyle response:**
+- **Kyle response (LOCKED 2026-04-13):**
+  Single fixed prices per tier, no published ranges. Verified against canonical Sales Playbook PRICING_LOGIC.md and TIER_BOUNDARIES.md. Drop ranges everywhere; one number per tier.
+  - Foundation Package: **$5,995** (Playbook range $5,000-$7,500, middle anchor)
+  - Implementation Package: **$12,995** (Playbook range $10,000-$15,000, middle anchor)
+  - Modernization Package: **$29,995** (Playbook range $25,000-$40,000, middle anchor)
+  - Single Workflow: **$5,000** (already flat in Playbook)
+  - Multi Workflow: **$10,000** (already flat in Playbook)
+  - Practice Area Pack: **$19,995** (Playbook range $15,000-$25,000, middle anchor)
+  - Parser Trial: $197 (already locked in Playbook)
+  - Full Litigation Suite: $2,997 (already locked in Playbook)
+
+  **Consequence — file updates queued for post-SP1 swap-in session (NOT day sessions):**
+  - index.html: replace 4 range strings with single prices
+  - Product Catalog/_playbook/PRICING_LOGIC.md: update tier headers and body references
+  - Product Catalog/_playbook/TIER_BOUNDARIES.md: update tier headers and "Language when asked for more" quote blocks
+  - Sweep INQUIRY_RESPONSE_TEMPLATES.md, OBJECTION_HANDLING.md, POSITIONING_CORE.md, SALES_PLAYBOOK.md for any echoed range references
+  - Real CATALOG_INDEX.yaml (when SP1 ships) must use these prices
+
+  Day sessions through Session 8 continue to use mock_catalog_index.yaml — the mock prices do NOT need to match these locked prices because mock tiers exist only for Stripe test mode infrastructure validation.
 - **Logged:** 2026-04-13
+- **Confirmed:** 2026-04-13
 
 ---
 

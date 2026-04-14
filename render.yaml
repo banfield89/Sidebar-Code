@@ -54,3 +54,74 @@ services:
         sync: false
       - key: SITE_BASE_URL
         sync: false
+
+  # ---------------------------------------------------------------------------
+  # Session 8 cron jobs
+  # ---------------------------------------------------------------------------
+  - type: cron
+    name: sidebarcode-daily-digest
+    runtime: python
+    rootDir: stripe-delivery
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    schedule: "0 15 * * *"  # 08:00 America/Phoenix == 15:00 UTC (no DST in AZ)
+    startCommand: python scripts/send_daily_digest.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - fromService:
+          type: web
+          name: sidebarcode-api
+          envVarKey: POSTMARK_API_TOKEN
+      - fromService:
+          type: web
+          name: sidebarcode-api
+          envVarKey: KYLE_ALERT_EMAIL
+      - fromService:
+          type: web
+          name: sidebarcode-api
+          envVarKey: SQLITE_PATH
+
+  - type: cron
+    name: sidebarcode-cleanup-r2
+    runtime: python
+    rootDir: stripe-delivery
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    schedule: "0 10 * * *"  # 03:00 America/Phoenix == 10:00 UTC
+    startCommand: python scripts/cleanup_r2.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - fromService:
+          type: web
+          name: sidebarcode-api
+          envVarKey: R2_ACCOUNT_ID
+      - fromService:
+          type: web
+          name: sidebarcode-api
+          envVarKey: R2_ACCESS_KEY_ID
+      - fromService:
+          type: web
+          name: sidebarcode-api
+          envVarKey: R2_SECRET_ACCESS_KEY
+      - fromService:
+          type: web
+          name: sidebarcode-api
+          envVarKey: R2_BUCKET
+
+  - type: cron
+    name: sidebarcode-cleanup-webhook-log
+    runtime: python
+    rootDir: stripe-delivery
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    schedule: "30 10 * * *"  # 03:30 America/Phoenix == 10:30 UTC
+    startCommand: python scripts/cleanup_webhook_debug_log.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - fromService:
+          type: web
+          name: sidebarcode-api
+          envVarKey: SQLITE_PATH

@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import os
-import secrets
 import subprocess
 from pathlib import Path
-from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
-from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi import FastAPI
 
+from api.admin import router as admin_router
 from api.checkout import router as checkout_router
 from api.webhook import router as webhook_router
 
@@ -22,17 +19,11 @@ app = FastAPI(
 )
 app.include_router(checkout_router)
 app.include_router(webhook_router)
+app.include_router(admin_router)
 
 
 def _resolve_git_sha() -> str:
-    """Return the short git sha for the running build.
-
-    Order of resolution:
-      1. `GIT_COMMIT` env var (Render injects this on deploy).
-      2. `RENDER_GIT_COMMIT` env var (Render's native name).
-      3. Fall back to `git rev-parse --short HEAD` for local dev.
-      4. Return 'unknown' if none of the above work.
-    """
+    """Return the short git sha for the running build."""
     for var in ("GIT_COMMIT", "RENDER_GIT_COMMIT"):
         value = os.getenv(var)
         if value:
@@ -54,7 +45,6 @@ def _resolve_git_sha() -> str:
 
 
 def _resolve_env() -> str:
-    """Return the deployment environment name."""
     return os.getenv("SIDEBARCODE_ENV", "development")
 
 
@@ -66,37 +56,3 @@ def health() -> dict[str, str]:
         "version": _resolve_git_sha(),
         "env": _resolve_env(),
     }
-
-
-# Admin dashboard basic auth.
-# Fails closed if env vars are unset (parked default from Session 1).
-_basic_auth = HTTPBasic()
-
-
-def _require_admin(
-    credentials: Annotated[HTTPBasicCredentials, Depends(_basic_auth)],
-) -> str:
-    expected_user = os.getenv("ADMIN_USER")
-    expected_password = os.getenv("ADMIN_PASSWORD")
-    if not expected_user or not expected_password:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="admin dashboard not configured",
-        )
-    user_ok = secrets.compare_digest(credentials.username, expected_user)
-    pass_ok = secrets.compare_digest(credentials.password, expected_password)
-    if not (user_ok and pass_ok):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid credentials",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials.username
-
-
-@app.get("/admin/dashboard")
-def admin_dashboard(
-    user: Annotated[str, Depends(_require_admin)],
-) -> dict[str, str]:
-    """Stub — wired in Session 8. Returns a placeholder for now."""
-    return {"status": "ok", "user": user, "detail": "dashboard stub (Session 8)"}
