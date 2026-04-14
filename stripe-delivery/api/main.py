@@ -10,6 +10,7 @@ from fastapi import FastAPI
 
 from api.admin import router as admin_router
 from api.checkout import router as checkout_router
+from api.pages import router as pages_router
 from api.webhook import router as webhook_router
 
 app = FastAPI(
@@ -20,6 +21,7 @@ app = FastAPI(
 app.include_router(checkout_router)
 app.include_router(webhook_router)
 app.include_router(admin_router)
+app.include_router(pages_router)
 
 
 def _resolve_git_sha() -> str:
