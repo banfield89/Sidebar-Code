@@ -73,22 +73,36 @@ class TierSyncResult:
 
 
 # ---------------------------------------------------------------------------
+# Safe accessor for Stripe StripeObject
+# ---------------------------------------------------------------------------
+def _safe_get(obj: Any, key: str, default: Any = None) -> Any:
+    """Stripe v15 StripeObject lacks dict-style .get(); use [] with fallback."""
+    if obj is None:
+        return default
+    try:
+        return obj[key]
+    except (KeyError, TypeError, AttributeError):
+        return default
+
+
+# ---------------------------------------------------------------------------
 # Stripe operations
 # ---------------------------------------------------------------------------
-def _find_product_by_tier_id(tier_id: str) -> Optional[dict[str, Any]]:
+def _find_product_by_tier_id(tier_id: str) -> Optional[Any]:
     """Search Stripe Products for one whose metadata.tier_id matches."""
     # Stripe doesn't support metadata search on Products via list, so we
     # paginate. At MVP volumes (<50 products) this is fine.
     for product in stripe.Product.list(limit=100, active=True).auto_paging_iter():
-        if (product.get("metadata") or {}).get("tier_id") == tier_id:
+        metadata = _safe_get(product, "metadata") or {}
+        if _safe_get(metadata, "tier_id") == tier_id:
             return product
     return None
 
 
-def _find_active_price(product_id: str, amount: int, currency: str) -> Optional[dict[str, Any]]:
+def _find_active_price(product_id: str, amount: int, currency: str) -> Optional[Any]:
     """Return the active Price under product_id matching amount + currency."""
     for price in stripe.Price.list(product=product_id, active=True, limit=100).auto_paging_iter():
-        if price.get("unit_amount") == amount and price.get("currency") == currency:
+        if _safe_get(price, "unit_amount") == amount and _safe_get(price, "currency") == currency:
             return price
     return None
 
@@ -104,7 +118,7 @@ def _archive_existing_active_prices(product_id: str, keep_id: Optional[str] = No
     return archived
 
 
-def _upsert_product(tier: TierEntry) -> dict[str, Any]:
+def _upsert_product(tier: TierEntry) -> Any:
     existing = _find_product_by_tier_id(tier.tier_id)
     if existing is None:
         return stripe.Product.create(
@@ -118,10 +132,11 @@ def _upsert_product(tier: TierEntry) -> dict[str, Any]:
             },
         )
 
+    existing_metadata = _safe_get(existing, "metadata") or {}
     needs_update = (
-        existing.get("name") != tier.stripe_product_name
-        or existing.get("description") != tier.stripe_product_description
-        or (existing.get("metadata") or {}).get("delivery_type") != tier.delivery_type
+        _safe_get(existing, "name") != tier.stripe_product_name
+        or _safe_get(existing, "description") != tier.stripe_product_description
+        or _safe_get(existing_metadata, "delivery_type") != tier.delivery_type
     )
     if needs_update:
         return stripe.Product.modify(
@@ -137,7 +152,7 @@ def _upsert_product(tier: TierEntry) -> dict[str, Any]:
     return existing
 
 
-def _upsert_price(tier: TierEntry, product_id: str) -> tuple[dict[str, Any], bool]:
+def _upsert_price(tier: TierEntry, product_id: str) -> tuple[Any, bool]:
     """Return (price, was_created)."""
     existing = _find_active_price(product_id, tier.price_cents, tier.currency)
     if existing is not None:

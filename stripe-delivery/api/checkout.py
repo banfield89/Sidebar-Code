@@ -229,14 +229,19 @@ def read_session(session_id: str) -> SessionInfoResponse:
             detail=f"stripe error: {exc}",
         ) from exc
 
-    metadata = session.get("metadata") or {}
-    tier_id = metadata.get("tier_id", "unknown")
-    delivery_type = metadata.get("delivery_type", "unknown")
+    def _safe(obj, key, default=None):
+        if obj is None:
+            return default
+        try:
+            return obj[key]
+        except (KeyError, TypeError, AttributeError):
+            return default
 
+    metadata = _safe(session, "metadata") or {}
     return SessionInfoResponse(
-        tier_id=tier_id,
-        delivery_type=delivery_type,
-        amount=session.get("amount_total") or 0,
-        currency=session.get("currency") or "usd",
-        status=session.get("status") or "unknown",
+        tier_id=_safe(metadata, "tier_id", "unknown") or "unknown",
+        delivery_type=_safe(metadata, "delivery_type", "unknown") or "unknown",
+        amount=_safe(session, "amount_total", 0) or 0,
+        currency=_safe(session, "currency", "usd") or "usd",
+        status=_safe(session, "status", "unknown") or "unknown",
     )
