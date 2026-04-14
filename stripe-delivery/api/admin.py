@@ -18,11 +18,11 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-from api import crm, delivery
+from api import crm, cron_jobs, delivery
 from api.db import get_connection
 
 logger = logging.getLogger(__name__)
@@ -298,3 +298,48 @@ def resend_delivery(
     background_tasks.add_task(_resend_purchase, purchase_id)
     logger.info("resend queued for purchase_id=%s by user=%s", purchase_id, user)
     return RedirectResponse(url="/admin/sales", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ---------------------------------------------------------------------------
+# Cron-triggered endpoints (Bearer auth via CRON_SECRET)
+# ---------------------------------------------------------------------------
+def _require_cron_secret(authorization: Annotated[str | None, Header()] = None) -> None:
+    """Validate Bearer token against CRON_SECRET env var. Fails closed."""
+    expected = os.environ.get("CRON_SECRET")
+    if not expected:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="CRON_SECRET not configured",
+        )
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="missing bearer token",
+        )
+    provided = authorization[len("Bearer "):].strip()
+    if not secrets.compare_digest(provided, expected):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid cron secret",
+        )
+
+
+@router.post("/admin/cron/daily-digest")
+def cron_daily_digest(_: Annotated[None, Depends(_require_cron_secret)]) -> dict[str, Any]:
+    """HTTP-triggered daily digest. Cron service POSTs here with bearer token."""
+    metrics = cron_jobs.run_daily_digest()
+    return {
+        "status": "ok",
+        "purchase_count": metrics["purchase_count"],
+        "delivered_revenue_cents": metrics["delivered_revenue_cents"],
+    }
+
+
+@router.post("/admin/cron/cleanup-webhook-log")
+def cron_cleanup_webhook_log(
+    _: Annotated[None, Depends(_require_cron_secret)],
+    retention_days: int = 30,
+) -> dict[str, Any]:
+    """HTTP-triggered webhook_debug_log cleanup."""
+    deleted = cron_jobs.run_cleanup_webhook_debug_log(retention_days=retention_days)
+    return {"status": "ok", "deleted_rows": deleted, "retention_days": retention_days}

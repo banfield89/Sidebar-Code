@@ -1,21 +1,23 @@
-"""Nightly cron — prune webhook_debug_log rows older than retention window.
+"""Webhook debug log cleanup cron — HTTP client.
 
-Default retention: 30 days. webhook_debug_log accumulates one row per
-incoming Stripe event for audit/debugging. At >100 events/day this would
-grow unbounded; this cron keeps it bounded.
+Like send_daily_digest, this is a thin HTTP wrapper that calls
+/admin/cron/cleanup-webhook-log on the web service. The actual SQL
+DELETE runs in the web service because the SQLite file lives on the
+web service's persistent disk only.
 
 Usage:
     python scripts/cleanup_webhook_debug_log.py
-    python scripts/cleanup_webhook_debug_log.py --retention-days 14 --dry-run
+    python scripts/cleanup_webhook_debug_log.py --retention-days 14
 """
 
 from __future__ import annotations
 
 import argparse
-import logging
+import json
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 
@@ -29,51 +31,51 @@ def _autoload_secrets() -> None:
         return
     values = dotenv_values(secrets_path)
     cleaned = {k: (v or "").strip() for k, v in values.items()}
-    if not os.environ.get("SQLITE_PATH") and cleaned.get("SQLITE_PATH"):
-        os.environ["SQLITE_PATH"] = cleaned["SQLITE_PATH"]
+    for key in ("SP2_API_URL", "CRON_SECRET"):
+        if not os.environ.get(key) and cleaned.get(key):
+            os.environ[key] = cleaned[key]
 
 
 _autoload_secrets()
 
-_ROOT = Path(__file__).resolve().parent.parent
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
-
-from api.db import get_connection  # noqa: E402
-
-logger = logging.getLogger("cleanup_webhook_debug_log")
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-
-DEFAULT_RETENTION_DAYS = 30
-
-
-def cleanup(retention_days: int, dry_run: bool) -> int:
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=retention_days)).isoformat()
-    with get_connection() as conn:
-        if dry_run:
-            row = conn.execute(
-                "SELECT COUNT(*) FROM webhook_debug_log WHERE created_at < ?",
-                (cutoff,),
-            ).fetchone()
-            count = row[0]
-            logger.info("[DRY-RUN] would delete %d rows older than %s", count, cutoff)
-            return count
-        result = conn.execute(
-            "DELETE FROM webhook_debug_log WHERE created_at < ?", (cutoff,)
-        )
-        deleted = result.rowcount
-    logger.info("deleted %d rows older than %s", deleted, cutoff)
-    return deleted
+DEFAULT_API_URL = "https://sidebarcode-api.onrender.com"
+ENDPOINT = "/admin/cron/cleanup-webhook-log"
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--retention-days", type=int, default=DEFAULT_RETENTION_DAYS)
-    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--retention-days", type=int, default=30)
     args = parser.parse_args()
 
-    cleanup(args.retention_days, args.dry_run)
-    return 0
+    api_url = os.environ.get("SP2_API_URL") or DEFAULT_API_URL
+    secret = os.environ.get("CRON_SECRET")
+    if not secret:
+        print("ERROR: CRON_SECRET not set", file=sys.stderr)
+        return 1
+
+    url = f"{api_url.rstrip('/')}{ENDPOINT}?retention_days={args.retention_days}"
+    print(f"POST {url}")
+    req = urllib.request.Request(
+        url,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {secret}",
+            "Content-Type": "application/json",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            body = resp.read().decode("utf-8")
+            print(f"HTTP {resp.status} — {body}")
+            payload = json.loads(body)
+            print(f"cleanup deleted {payload.get('deleted_rows')} rows")
+            return 0
+    except urllib.error.HTTPError as e:
+        print(f"HTTP {e.code} — {e.read().decode('utf-8')}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

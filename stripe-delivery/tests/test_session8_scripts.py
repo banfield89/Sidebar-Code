@@ -1,4 +1,10 @@
-"""Tests for Session 8 scripts: daily digest + R2 cleanup + webhook log cleanup."""
+"""Tests for Session 8 cron job logic.
+
+After the HTTP-trigger refactor, the digest and webhook log cleanup logic
+lives in api/cron_jobs.py and is exercised via the /admin/cron/* HTTP
+endpoints. The R2 cleanup script remains a standalone script because it
+talks only to R2 (no SQLite needed).
+"""
 
 from __future__ import annotations
 
@@ -9,8 +15,10 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+from fastapi.testclient import TestClient
 
-from api import crm, db as db_module, delivery
+from api import cron_jobs, crm, db as db_module, delivery
+from api.main import app
 
 
 @pytest.fixture(autouse=True)
@@ -19,9 +27,14 @@ def _isolated_db(monkeypatch, tmp_path: Path):
     monkeypatch.setenv("SQLITE_PATH", str(db_path))
     monkeypatch.setenv("POSTMARK_API_TOKEN", "test_placeholder")
     monkeypatch.setenv("KYLE_ALERT_EMAIL", "kyle@sidebarcode.com")
+    monkeypatch.setenv("CRON_SECRET", "test_cron_secret_value")
     db_module.reset_for_tests()
     yield
     db_module.reset_for_tests()
+
+
+client = TestClient(app)
+CRON_HEADERS = {"Authorization": "Bearer test_cron_secret_value"}
 
 
 def _import_script(name: str):
@@ -35,22 +48,19 @@ def _import_script(name: str):
 
 
 # ---------------------------------------------------------------------------
-# Daily digest
+# Daily digest — logic in cron_jobs.py
 # ---------------------------------------------------------------------------
 def test_daily_digest_sends_even_on_zero_purchases(monkeypatch) -> None:
     fake_send = MagicMock()
-    monkeypatch.setattr(delivery, "_send_plain_email", fake_send)
+    monkeypatch.setattr(cron_jobs, "_send_plain_email", fake_send)
 
-    digest = _import_script("send_daily_digest")
-    monkeypatch.setattr(digest, "_send_plain_email", fake_send)
+    metrics = cron_jobs.run_daily_digest()
 
-    rc = digest.main()
-    assert rc == 0
+    assert metrics["purchase_count"] == 0
     fake_send.assert_called_once()
     kwargs = fake_send.call_args.kwargs
     assert "quiet day" in kwargs["subject"]
     assert "No purchases" in kwargs["text_body"]
-    assert kwargs["to"] == "kyle@sidebarcode.com"
 
 
 def test_daily_digest_includes_recent_purchases(monkeypatch) -> None:
@@ -66,12 +76,10 @@ def test_daily_digest_includes_recent_purchases(monkeypatch) -> None:
     )
 
     fake_send = MagicMock()
-    monkeypatch.setattr(delivery, "_send_plain_email", fake_send)
-    digest = _import_script("send_daily_digest")
-    monkeypatch.setattr(digest, "_send_plain_email", fake_send)
+    monkeypatch.setattr(cron_jobs, "_send_plain_email", fake_send)
+    metrics = cron_jobs.run_daily_digest()
 
-    digest.main()
-
+    assert metrics["purchase_count"] == 1
     kwargs = fake_send.call_args.kwargs
     assert "1 purchase" in kwargs["subject"]
     assert "$1.97" in kwargs["subject"]
@@ -80,7 +88,80 @@ def test_daily_digest_includes_recent_purchases(monkeypatch) -> None:
 
 
 # ---------------------------------------------------------------------------
-# R2 cleanup
+# Cron HTTP endpoints
+# ---------------------------------------------------------------------------
+def test_cron_daily_digest_endpoint_requires_bearer_token() -> None:
+    response = client.post("/admin/cron/daily-digest")
+    assert response.status_code == 401
+
+
+def test_cron_daily_digest_endpoint_rejects_wrong_token() -> None:
+    response = client.post(
+        "/admin/cron/daily-digest",
+        headers={"Authorization": "Bearer wrong_secret"},
+    )
+    assert response.status_code == 401
+
+
+def test_cron_daily_digest_endpoint_succeeds_with_valid_token(monkeypatch) -> None:
+    fake_send = MagicMock()
+    monkeypatch.setattr(cron_jobs, "_send_plain_email", fake_send)
+    response = client.post("/admin/cron/daily-digest", headers=CRON_HEADERS)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["purchase_count"] == 0
+    fake_send.assert_called_once()
+
+
+def test_cron_daily_digest_503_when_secret_unset(monkeypatch) -> None:
+    monkeypatch.delenv("CRON_SECRET", raising=False)
+    response = client.post("/admin/cron/daily-digest", headers=CRON_HEADERS)
+    assert response.status_code == 503
+
+
+# ---------------------------------------------------------------------------
+# Webhook debug log cleanup — logic in cron_jobs.py
+# ---------------------------------------------------------------------------
+def test_cleanup_webhook_debug_log_deletes_old_rows() -> None:
+    old_ts = (datetime.now(timezone.utc) - timedelta(days=45)).isoformat()
+    new_ts = (datetime.now(timezone.utc) - timedelta(days=5)).isoformat()
+    with db_module.get_connection() as conn:
+        conn.execute(
+            "INSERT INTO webhook_debug_log (stripe_event_id, event_type, event_data_json, created_at) VALUES (?, ?, ?, ?)",
+            ("evt_old_001", "checkout.session.completed", "{}", old_ts),
+        )
+        conn.execute(
+            "INSERT INTO webhook_debug_log (stripe_event_id, event_type, event_data_json, created_at) VALUES (?, ?, ?, ?)",
+            ("evt_new_001", "checkout.session.completed", "{}", new_ts),
+        )
+
+    deleted = cron_jobs.run_cleanup_webhook_debug_log(retention_days=30)
+    assert deleted == 1
+
+    with db_module.get_connection() as conn:
+        rows = conn.execute("SELECT stripe_event_id FROM webhook_debug_log").fetchall()
+    remaining = {r["stripe_event_id"] for r in rows}
+    assert remaining == {"evt_new_001"}
+
+
+def test_cron_cleanup_webhook_log_endpoint_succeeds(monkeypatch) -> None:
+    old_ts = (datetime.now(timezone.utc) - timedelta(days=45)).isoformat()
+    with db_module.get_connection() as conn:
+        conn.execute(
+            "INSERT INTO webhook_debug_log (stripe_event_id, event_type, event_data_json, created_at) VALUES (?, ?, ?, ?)",
+            ("evt_endpoint_old", "checkout.session.completed", "{}", old_ts),
+        )
+
+    response = client.post("/admin/cron/cleanup-webhook-log", headers=CRON_HEADERS)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["deleted_rows"] == 1
+
+
+# ---------------------------------------------------------------------------
+# R2 cleanup — still a standalone script (no SQLite)
 # ---------------------------------------------------------------------------
 def test_cleanup_r2_deletes_expired_objects_only(monkeypatch) -> None:
     now = datetime.now(timezone.utc)
@@ -105,71 +186,9 @@ def test_cleanup_r2_deletes_expired_objects_only(monkeypatch) -> None:
     monkeypatch.setattr(cleanup, "_r2_client", lambda: fake_client)
 
     counts = cleanup.cleanup_bucket("test-bucket", max_age_days=7, dry_run=False)
-
     assert counts["scanned"] == 3
     assert counts["deleted"] == 1
     assert counts["skipped"] == 1
     fake_client.delete_object.assert_called_once_with(
         Bucket="test-bucket", Key="expired/object.zip"
     )
-
-
-def test_cleanup_r2_dry_run_does_not_delete(monkeypatch) -> None:
-    now = datetime.now(timezone.utc)
-    expired = now - timedelta(days=10)
-    fake_client = MagicMock()
-    fake_paginator = MagicMock()
-    fake_paginator.paginate.return_value = [
-        {"Contents": [{"Key": "expired/object.zip", "LastModified": expired}]}
-    ]
-    fake_client.get_paginator.return_value = fake_paginator
-
-    cleanup = _import_script("cleanup_r2")
-    monkeypatch.setattr(cleanup, "_r2_client", lambda: fake_client)
-
-    counts = cleanup.cleanup_bucket("test-bucket", max_age_days=7, dry_run=True)
-    assert counts["deleted"] == 1  # would-have-deleted count
-    fake_client.delete_object.assert_not_called()
-
-
-# ---------------------------------------------------------------------------
-# webhook_debug_log cleanup
-# ---------------------------------------------------------------------------
-def test_cleanup_webhook_debug_log_deletes_old_rows() -> None:
-    old_ts = (datetime.now(timezone.utc) - timedelta(days=45)).isoformat()
-    new_ts = (datetime.now(timezone.utc) - timedelta(days=5)).isoformat()
-    with db_module.get_connection() as conn:
-        conn.execute(
-            "INSERT INTO webhook_debug_log (stripe_event_id, event_type, event_data_json, created_at) VALUES (?, ?, ?, ?)",
-            ("evt_old_001", "checkout.session.completed", "{}", old_ts),
-        )
-        conn.execute(
-            "INSERT INTO webhook_debug_log (stripe_event_id, event_type, event_data_json, created_at) VALUES (?, ?, ?, ?)",
-            ("evt_new_001", "checkout.session.completed", "{}", new_ts),
-        )
-
-    cleanup = _import_script("cleanup_webhook_debug_log")
-    deleted = cleanup.cleanup(retention_days=30, dry_run=False)
-    assert deleted == 1
-
-    with db_module.get_connection() as conn:
-        rows = conn.execute("SELECT stripe_event_id FROM webhook_debug_log").fetchall()
-    remaining = {r["stripe_event_id"] for r in rows}
-    assert remaining == {"evt_new_001"}
-
-
-def test_cleanup_webhook_debug_log_dry_run_does_not_delete() -> None:
-    old_ts = (datetime.now(timezone.utc) - timedelta(days=45)).isoformat()
-    with db_module.get_connection() as conn:
-        conn.execute(
-            "INSERT INTO webhook_debug_log (stripe_event_id, event_type, event_data_json, created_at) VALUES (?, ?, ?, ?)",
-            ("evt_dryrun_001", "checkout.session.completed", "{}", old_ts),
-        )
-
-    cleanup = _import_script("cleanup_webhook_debug_log")
-    count = cleanup.cleanup(retention_days=30, dry_run=True)
-    assert count == 1
-
-    with db_module.get_connection() as conn:
-        rows = conn.execute("SELECT * FROM webhook_debug_log").fetchall()
-    assert len(rows) == 1  # still there

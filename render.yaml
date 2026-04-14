@@ -54,6 +54,8 @@ services:
         sync: false
       - key: SITE_BASE_URL
         sync: false
+      - key: CRON_SECRET
+        sync: false
 
   # ---------------------------------------------------------------------------
   # Session 8 cron jobs
@@ -69,21 +71,13 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12"
-      - key: POSTMARK_API_TOKEN
+      - key: SP2_API_URL
+        value: https://sidebarcode-api.onrender.com
+      - key: CRON_SECRET
         fromService:
           type: web
           name: sidebarcode-api
-          envVarKey: POSTMARK_API_TOKEN
-      - key: KYLE_ALERT_EMAIL
-        fromService:
-          type: web
-          name: sidebarcode-api
-          envVarKey: KYLE_ALERT_EMAIL
-      - key: SQLITE_PATH
-        fromService:
-          type: web
-          name: sidebarcode-api
-          envVarKey: SQLITE_PATH
+          envVarKey: CRON_SECRET
 
   - type: cron
     name: sidebarcode-cleanup-r2
@@ -128,8 +122,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12"
-      - key: SQLITE_PATH
+      - key: SP2_API_URL
+        value: https://sidebarcode-api.onrender.com
+      - key: CRON_SECRET
         fromService:
           type: web
           name: sidebarcode-api
-          envVarKey: SQLITE_PATH
+          envVarKey: CRON_SECRET
