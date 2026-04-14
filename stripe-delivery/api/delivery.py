@@ -1,7 +1,8 @@
-"""Delivery pipeline: zip builder, R2 upload, signed URL generation, Postmark send.
+"""Delivery pipeline: zip builder, R2 upload, signed URL, Postmark send.
 
 Session 3 scope: build_zip, upload_to_r2, sign_download_url.
-Session 7 wires the Postmark `build_and_deliver_zip` orchestration on top.
+Session 7 scope: real build_and_deliver_zip, notify_kyle_new_purchase,
+notify_kyle_refund — all wired through Postmark.
 """
 
 from __future__ import annotations
@@ -9,16 +10,30 @@ from __future__ import annotations
 import logging
 import os
 import tempfile
+import traceback
 import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import boto3
 from botocore.client import Config
 from botocore.exceptions import BotoCoreError, ClientError
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Postmark template aliases — must match scripts/sync_postmark_templates.py
+# ---------------------------------------------------------------------------
+TEMPLATE_PRODUCT_DOWNLOAD = "sp2-product-download"
+TEMPLATE_CONSULTING_RECEIPT = "sp2-consulting-receipt"
+TEMPLATE_KYLE_NEW_CONSULTING = "sp2-kyle-new-consulting-purchase"
+TEMPLATE_DELIVERY_FAILURE_ALERT = "sp2-delivery-failure-alert"
+
+DEFAULT_FROM_ADDRESS = "kyle@sidebarcode.com"
+DEFAULT_REPLY_TO = "kyle@sidebarcode.com"
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent  # Side Bar Code/
 
 # ---------------------------------------------------------------------------
 # Defaults parked in DECISIONS_PARKING_LOT.md (Session 3)
@@ -231,37 +246,256 @@ def delete_r2_object(object_key: str, *, bucket: Optional[str] = None) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Session 7 orchestration stubs — wired in Session 7 to Postmark
+# Postmark client
+# ---------------------------------------------------------------------------
+def _postmark_client():
+    """Lazily build a PostmarkClient. Imported lazily so tests can mock."""
+    from postmarker.core import PostmarkClient
+
+    token = os.environ.get("POSTMARK_API_TOKEN")
+    if not token:
+        raise RuntimeError("POSTMARK_API_TOKEN is not set")
+    return PostmarkClient(server_token=token)
+
+
+def _from_address() -> str:
+    return os.environ.get("POSTMARK_FROM_ADDRESS") or DEFAULT_FROM_ADDRESS
+
+
+def _reply_to() -> str:
+    return os.environ.get("POSTMARK_REPLY_TO") or DEFAULT_REPLY_TO
+
+
+def _kyle_alert_email() -> str:
+    return os.environ.get("KYLE_ALERT_EMAIL") or DEFAULT_FROM_ADDRESS
+
+
+def _send_template_email(
+    *,
+    template_alias: str,
+    to: str,
+    template_model: dict[str, Any],
+) -> None:
+    """Send a Postmark email using a template alias."""
+    client = _postmark_client()
+    client.emails.send_with_template(
+        TemplateAlias=template_alias,
+        From=_from_address(),
+        To=to,
+        ReplyTo=_reply_to(),
+        TemplateModel=template_model,
+    )
+    logger.info("postmark template send ok — alias=%s to=%s", template_alias, to)
+
+
+def _send_plain_email(*, to: str, subject: str, text_body: str) -> None:
+    """Send a plain-text email (used for refund alerts which have no template)."""
+    client = _postmark_client()
+    client.emails.send(
+        From=_from_address(),
+        To=to,
+        Subject=subject,
+        TextBody=text_body,
+        ReplyTo=_reply_to(),
+    )
+    logger.info("postmark plain send ok — to=%s subject=%s", to, subject)
+
+
+# ---------------------------------------------------------------------------
+# Catalog + tier resolution
+# ---------------------------------------------------------------------------
+def _resolve_delivery_source_path(delivery_source: str) -> Path:
+    """Resolve a catalog delivery_source string to an absolute path.
+
+    delivery_source values are expressed relative to the repo root, e.g.:
+      stripe-delivery/tests/fixtures/dummy_deliverable/
+      Product Catalog/products/01_parser_trial/_customer_deliverables/
+    """
+    return (_REPO_ROOT / delivery_source).resolve()
+
+
+def _format_amount(amount_cents: int, currency: str) -> str:
+    return f"${amount_cents / 100:.2f} {currency.upper()}"
+
+
+def _stripe_dashboard_link(payment_intent_id: Optional[str], charge_id: Optional[str]) -> str:
+    if payment_intent_id:
+        return f"https://dashboard.stripe.com/test/payments/{payment_intent_id}"
+    if charge_id:
+        return f"https://dashboard.stripe.com/test/payments/{charge_id}"
+    return "https://dashboard.stripe.com/test/payments"
+
+
+# ---------------------------------------------------------------------------
+# build_and_deliver_zip — the zip_download branch
 # ---------------------------------------------------------------------------
 def build_and_deliver_zip(purchase) -> None:
-    """Stub: in Session 7 this will resolve catalog → build zip → upload →
-    sign URL → write fields to purchase row → send Postmark email.
+    """Build → upload → sign → email → mark delivered.
 
-    For Session 6, just logs that delivery would have happened so the
-    end-to-end webhook → purchase row → delivery handoff is wired and
-    testable without Postmark dependencies.
+    On any exception inside the try block: write a delivery_failures row,
+    send Kyle a delivery failure alert, then re-raise so Stripe retries
+    the webhook via its built-in exponential backoff.
     """
-    logger.info(
-        "build_and_deliver_zip STUB called — purchase_id=%s tier_id=%s",
-        getattr(purchase, "purchase_id", "unknown"),
-        getattr(purchase, "tier_id", "unknown"),
-    )
+    # Imported here to avoid circular imports (delivery <-> crm <-> webhook).
+    from api import crm
+    from api.catalog import load_catalog_index
+
+    try:
+        catalog = load_catalog_index()
+        tier = catalog.get(purchase.tier_id)
+        if not tier.delivery_source:
+            raise RuntimeError(f"tier {tier.tier_id} has no delivery_source")
+
+        source_path = _resolve_delivery_source_path(tier.delivery_source)
+        if not source_path.exists():
+            raise FileNotFoundError(f"delivery_source not found on disk: {source_path}")
+
+        zip_path = build_zip(source_path, purchase.purchase_id)
+        try:
+            object_key = f"{tier.tier_id}/{purchase.purchase_id}.zip"
+            expires_at = datetime.now(timezone.utc) + timedelta(seconds=DOWNLOAD_URL_TTL_SECONDS)
+            upload_to_r2(zip_path, object_key, expires_at=expires_at)
+            download_url = sign_download_url(object_key, ttl_seconds=DOWNLOAD_URL_TTL_SECONDS)
+        finally:
+            # Clean up the local temp zip even if upload failed.
+            try:
+                zip_path.unlink(missing_ok=True)
+                zip_path.parent.rmdir()
+            except OSError:
+                pass
+
+        crm.update_purchase_status(
+            purchase.purchase_id,
+            crm.PurchaseStatus.DELIVERED,
+            zip_object_key=object_key,
+            download_url_expires_at=expires_at.isoformat(),
+        )
+
+        _send_template_email(
+            template_alias=TEMPLATE_PRODUCT_DOWNLOAD,
+            to=purchase.buyer_email,
+            template_model={
+                "buyer_name": purchase.buyer_name or "there",
+                "tier_name": tier.stripe_product_name,
+                "tier_id": tier.tier_id,
+                "purchase_id": purchase.purchase_id,
+                "download_url": download_url,
+                "expires_at": expires_at.isoformat(),
+                "purchased_at": purchase.created_at,
+                "support_email": _from_address(),
+            },
+        )
+        logger.info(
+            "build_and_deliver_zip success — purchase_id=%s tier_id=%s",
+            purchase.purchase_id, tier.tier_id,
+        )
+
+    except Exception as exc:
+        tb = traceback.format_exc()
+        logger.exception("build_and_deliver_zip FAILED — purchase_id=%s", purchase.purchase_id)
+        try:
+            crm.record_delivery_failure(
+                purchase.purchase_id,
+                error_msg=str(exc),
+                traceback=tb,
+            )
+        except Exception:
+            logger.exception("failed to record delivery_failure row")
+
+        try:
+            _send_template_email(
+                template_alias=TEMPLATE_DELIVERY_FAILURE_ALERT,
+                to=_kyle_alert_email(),
+                template_model={
+                    "purchase_id": purchase.purchase_id,
+                    "tier_id": purchase.tier_id,
+                    "buyer_email": purchase.buyer_email,
+                    "failed_at": datetime.now(timezone.utc).isoformat(),
+                    "error_message": str(exc),
+                    "traceback": tb,
+                    "render_logs_link": "https://dashboard.render.com",
+                    "stripe_event_link": _stripe_dashboard_link(
+                        purchase.stripe_payment_intent_id, purchase.stripe_charge_id
+                    ),
+                },
+            )
+        except Exception:
+            logger.exception("failed to send delivery_failure_alert email")
+
+        raise  # re-raise so Stripe retries the webhook
 
 
+# ---------------------------------------------------------------------------
+# notify_kyle_new_purchase — the notify_kyle branch
+# ---------------------------------------------------------------------------
 def notify_kyle_new_purchase(purchase, lead) -> None:
-    """Stub: Session 7 sends Postmark emails to Kyle and the buyer."""
+    """Send Kyle the alert email and the buyer the consulting receipt.
+
+    No exception suppression — if either email fails, the webhook handler
+    surfaces a 500 and Stripe retries. Lead row is already inserted at
+    this point and is idempotent on charge_id, so retries don't duplicate.
+    """
+    from api.catalog import load_catalog_index
+
+    catalog = load_catalog_index()
+    tier = catalog.get(purchase.tier_id)
+    scheduling_link = tier.scheduling_link or "https://cal.com/kylebanfield"
+
+    common = {
+        "buyer_name": purchase.buyer_name or "there",
+        "buyer_email": purchase.buyer_email,
+        "buyer_phone": purchase.buyer_phone or "(not provided)",
+        "tier_name": tier.stripe_product_name,
+        "tier_id": tier.tier_id,
+        "purchase_id": purchase.purchase_id,
+        "lead_id": lead.lead_id,
+        "amount_formatted": _format_amount(purchase.amount_cents, purchase.currency),
+        "scheduling_link": scheduling_link,
+        "kyle_email": _from_address(),
+        "purchased_at": purchase.created_at,
+        "stripe_dashboard_link": _stripe_dashboard_link(
+            purchase.stripe_payment_intent_id, purchase.stripe_charge_id
+        ),
+    }
+
+    # Buyer-facing receipt
+    _send_template_email(
+        template_alias=TEMPLATE_CONSULTING_RECEIPT,
+        to=purchase.buyer_email,
+        template_model=common,
+    )
+
+    # Kyle-facing alert
+    _send_template_email(
+        template_alias=TEMPLATE_KYLE_NEW_CONSULTING,
+        to=_kyle_alert_email(),
+        template_model=common,
+    )
+
     logger.info(
-        "notify_kyle_new_purchase STUB called — purchase_id=%s lead_id=%s tier_id=%s",
-        getattr(purchase, "purchase_id", "unknown"),
-        getattr(lead, "lead_id", "unknown"),
-        getattr(purchase, "tier_id", "unknown"),
+        "notify_kyle_new_purchase success — purchase_id=%s lead_id=%s",
+        purchase.purchase_id, lead.lead_id,
     )
 
 
+# ---------------------------------------------------------------------------
+# notify_kyle_refund — internal Kyle alert, plain text (no template)
+# ---------------------------------------------------------------------------
 def notify_kyle_refund(purchase) -> None:
-    """Stub: Session 7 sends Postmark refund alert to Kyle."""
-    logger.info(
-        "notify_kyle_refund STUB called — purchase_id=%s tier_id=%s",
-        getattr(purchase, "purchase_id", "unknown"),
-        getattr(purchase, "tier_id", "unknown"),
+    subject = f"REFUND: {purchase.tier_id} ({_format_amount(purchase.amount_cents, purchase.currency)})"
+    body = (
+        f"A refund was processed in SP2.\n\n"
+        f"Purchase ID:  {purchase.purchase_id}\n"
+        f"Tier:         {purchase.tier_id}\n"
+        f"Buyer:        {purchase.buyer_email}\n"
+        f"Amount:       {_format_amount(purchase.amount_cents, purchase.currency)}\n"
+        f"Charge ID:    {purchase.stripe_charge_id or '(none)'}\n"
+        f"Payment IID:  {purchase.stripe_payment_intent_id or '(none)'}\n"
+        f"Originally:   {purchase.created_at}\n\n"
+        f"Stripe dashboard: "
+        f"{_stripe_dashboard_link(purchase.stripe_payment_intent_id, purchase.stripe_charge_id)}\n\n"
+        f"Status was already set to 'refunded' in SQLite. "
+        f"R2 object {'was deleted' if purchase.zip_object_key else 'was not present'}.\n"
     )
+    _send_plain_email(to=_kyle_alert_email(), subject=subject, text_body=body)
+    logger.info("notify_kyle_refund sent — purchase_id=%s", purchase.purchase_id)

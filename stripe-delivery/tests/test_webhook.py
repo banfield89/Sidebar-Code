@@ -13,11 +13,12 @@ import json
 import time
 from pathlib import Path
 from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
 
-from api import db as db_module
+from api import db as db_module, delivery
 from api.main import app
 
 WEBHOOK_SECRET = "whsec_test_unit_placeholder_secret_value"
@@ -25,10 +26,18 @@ WEBHOOK_SECRET = "whsec_test_unit_placeholder_secret_value"
 
 @pytest.fixture(autouse=True)
 def _isolated_db(monkeypatch, tmp_path: Path):
-    """Each test gets a fresh SQLite file in tmp_path."""
+    """Each test gets a fresh SQLite file in tmp_path.
+
+    Also stubs the delivery orchestration so these signature/idempotency/
+    routing tests don't try to talk to R2 or Postmark — that surface is
+    covered by test_delivery_orchestration.py and test_webhook_orchestration.py.
+    """
     db_path = tmp_path / "test.db"
     monkeypatch.setenv("SQLITE_PATH", str(db_path))
     monkeypatch.setenv("STRIPE_WEBHOOK_SECRET", WEBHOOK_SECRET)
+    monkeypatch.setattr(delivery, "build_and_deliver_zip", MagicMock())
+    monkeypatch.setattr(delivery, "notify_kyle_new_purchase", MagicMock())
+    monkeypatch.setattr(delivery, "notify_kyle_refund", MagicMock())
     db_module.reset_for_tests()
     yield
     db_module.reset_for_tests()

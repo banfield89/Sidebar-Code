@@ -16,6 +16,64 @@
 
 *(Day-session agents append here as they encounter questions. Kyle edits in the evening.)*
 
+### Session 7 — End-to-end delivery wiring + placeholder emails
+
+`[S7]` `[Status: PENDING]`
+- **File:** stripe-delivery/scripts/sync_postmark_templates.py + stripe-delivery/api/delivery.py
+- **Question:** Reference Postmark templates by ID or by alias?
+- **Agent default:** **Alias** (string), not numeric ID. Aliases survive template re-creations and let Kyle edit copy in the dashboard without code changes. Hardcoded aliases: `sp2-product-download`, `sp2-consulting-receipt`, `sp2-kyle-new-consulting-purchase`, `sp2-delivery-failure-alert`. The sync script idempotently creates/updates these by alias.
+- **Logged:** 2026-04-13
+
+---
+
+`[S7]` `[Status: PENDING]`
+- **File:** stripe-delivery/scripts/sync_postmark_templates.py
+- **Question:** Refund alert — dedicated template or plain text?
+- **Agent default:** Plain text via `client.emails.send` (not `send_with_template`). The playbook lists 4 templates and refund alert is not among them. Refund alerts are internal-only (only Kyle sees them) so polished HTML is not needed. Reduces template count by 25%.
+- **Logged:** 2026-04-13
+
+---
+
+`[S7]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/delivery.py — build_and_deliver_zip error handling
+- **Question:** delivery_failure_alert email — include full traceback or just error message?
+- **Agent default:** **Full traceback**. Internal alert, not customer-facing. Saves Kyle a trip to Render logs to diagnose. Matches playbook default.
+- **Logged:** 2026-04-13
+
+---
+
+`[S7]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/delivery.py — consulting_receipt template
+- **Question:** Include purchase amount in consulting_receipt email?
+- **Agent default:** Yes (`amount_formatted` merge var, formatted as `$X.XX USD`). Standard receipt practice. Matches playbook default.
+- **Logged:** 2026-04-13
+
+---
+
+`[S7]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/delivery.py — FROM and Reply-To
+- **Question:** From-address and Reply-To configuration?
+- **Agent default:** Both default to `kyle@sidebarcode.com`. Overridable via env: `POSTMARK_FROM_ADDRESS` and `POSTMARK_REPLY_TO`. Kyle alert recipient is `KYLE_ALERT_EMAIL` (defaults to from address). Note: Render env already has `KYLE_ALERT_EMAIL` from Session 2 blueprint apply.
+- **Logged:** 2026-04-13
+
+---
+
+`[S7]` `[Status: PENDING]` — **Postmark template bodies are PLACEHOLDER ONLY.**
+- All 4 templates created by `scripts/sync_postmark_templates.py` have working but rough copy. Kyle should edit each template in the Postmark dashboard during an evening session before launch. The aliases never change so editing is non-destructive to the code. Templates to refine:
+  - `sp2-product-download` — buyer-facing, currently functional but plain
+  - `sp2-consulting-receipt` — buyer-facing, needs Sales Playbook voice pass
+  - `sp2-kyle-new-consulting-purchase` — internal, fine as-is
+  - `sp2-delivery-failure-alert` — internal, fine as-is
+- **Logged:** 2026-04-13
+
+---
+
+`[S7]` `[Status: PENDING]` — **Manual end-to-end email verification not yet performed.**
+- Kyle must (1) run `python scripts/sync_postmark_templates.py` to create the 4 templates in his Postmark account, (2) complete a real test purchase of `mock_parser_trial` and confirm the download email arrives, (3) click the download link and confirm the dummy zip downloads, (4) complete a test purchase of `mock_consulting_foundation` and confirm both emails arrive (Kyle alert + buyer receipt). See post-commit instructions for exact steps.
+- **Logged:** 2026-04-13
+
+---
+
 ### Session 6 — Purchases, leads, refund handler
 
 `[S6]` `[Status: PENDING]`
