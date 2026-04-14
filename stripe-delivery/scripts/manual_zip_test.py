@@ -3,15 +3,9 @@
 Usage (from stripe-delivery/):
     python scripts/manual_zip_test.py
 
-Reads R2 credentials from environment. The easiest way is to source them
-from your local secrets file before running:
-
-    set -a && source ~/.sidebarcode-secrets.env && set +a
-    R2_ACCESS_KEY_ID=$R2_ACCESS_KEY_ID \\
-    R2_SECRET_ACCESS_KEY=$R2_SECRET_ACCESS_KEY \\
-    R2_ACCOUNT_ID=$R2_ACCOUNT_ID \\
-    R2_BUCKET=sidebarcode-dev \\
-    python scripts/manual_zip_test.py
+The script auto-loads ~/.sidebarcode-secrets.env if it exists, so you do
+not need to source anything beforehand. You can also pass credentials via
+real environment variables, which take precedence over the secrets file.
 
 The script:
   1. Zips tests/fixtures/dummy_deliverable/ with a fresh purchase_id.
@@ -28,6 +22,46 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+
+
+def _autoload_secrets() -> None:
+    """Auto-load credentials from ~/.sidebarcode-secrets.env if present.
+
+    Variable name aliases: the secrets file uses `_TEST` / `_LIVE` suffixes
+    for Stripe and the unsuffixed names for R2. This function maps the
+    file's R2 vars onto the names the script expects, with strict
+    preference for variables already set in the real environment.
+    """
+    secrets_path = Path.home() / ".sidebarcode-secrets.env"
+    if not secrets_path.exists():
+        return
+
+    try:
+        from dotenv import dotenv_values  # type: ignore[import-untyped]
+    except ImportError:
+        print(
+            f"WARNING: python-dotenv not installed; cannot auto-load {secrets_path}\n"
+            "         install with: pip install python-dotenv",
+            file=sys.stderr,
+        )
+        return
+
+    values = dotenv_values(secrets_path)
+    # Strip surrounding whitespace and CRLF artifacts.
+    cleaned = {k: (v or "").strip() for k, v in values.items()}
+
+    # R2 vars — passthrough.
+    for key in ("R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY"):
+        if not os.environ.get(key) and cleaned.get(key):
+            os.environ[key] = cleaned[key]
+
+    # R2_BUCKET defaults to dev bucket from the file, then env, then literal.
+    if not os.environ.get("R2_BUCKET"):
+        bucket = cleaned.get("R2_BUCKET_DEV") or "sidebarcode-dev"
+        os.environ["R2_BUCKET"] = bucket
+
+
+_autoload_secrets()
 
 # Make `api` importable when running this script from stripe-delivery/.
 _ROOT = Path(__file__).resolve().parent.parent
