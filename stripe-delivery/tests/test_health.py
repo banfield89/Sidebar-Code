@@ -24,7 +24,8 @@ def test_checkout_validates_body() -> None:
     assert response.status_code == 422
 
 
-def test_webhook_returns_501() -> None:
+def test_webhook_rejects_unsigned_request(monkeypatch) -> None:
+    """Webhook is implemented in Session 5. No signature should now 400."""
+    monkeypatch.setenv("STRIPE_WEBHOOK_SECRET", "whsec_test_placeholder")
     response = client.post("/api/webhook", content=b"{}")
-    assert response.status_code == 501
-    assert "not yet implemented" in response.json()["detail"].lower()
+    assert response.status_code == 400

@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from api.checkout import router as checkout_router
+from api.webhook import router as webhook_router
 
 app = FastAPI(
     title="Sidebar Code SP2 API",
@@ -20,6 +21,7 @@ app = FastAPI(
     version="0.1.0",
 )
 app.include_router(checkout_router)
+app.include_router(webhook_router)
 
 
 def _resolve_git_sha() -> str:
@@ -64,15 +66,6 @@ def health() -> dict[str, str]:
         "version": _resolve_git_sha(),
         "env": _resolve_env(),
     }
-
-
-@app.post("/api/webhook")
-async def stripe_webhook(request: Request) -> JSONResponse:
-    """Stub — wired in Session 5. Returns 501 until then."""
-    return JSONResponse(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        content={"detail": "webhook not yet implemented (Session 5)"},
-    )
 
 
 # Admin dashboard basic auth.

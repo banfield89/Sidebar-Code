@@ -16,6 +16,54 @@
 
 *(Day-session agents append here as they encounter questions. Kyle edits in the evening.)*
 
+### Session 5 — Webhook handler + signature verification + idempotency
+
+`[S5]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/db.py
+- **Question:** SQLite WAL mode? Foreign keys?
+- **Agent default:** Both enabled at schema initialization. `PRAGMA journal_mode = WAL` for better concurrent reads, `PRAGMA foreign_keys = ON` for referential integrity. Initialized once per process per DB path. Matches Session 6 parked default.
+- **Logged:** 2026-04-13
+
+---
+
+`[S5]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/webhook.py
+- **Question:** Mark events as processed before or after handler runs?
+- **Agent default:** **After**. Only successful handler runs are marked processed. If handler raises, event is NOT marked, returning 500, and Stripe will retry. This guarantees at-least-once delivery semantics. Idempotency is preserved because a successful retry will short-circuit if a duplicate id arrives later.
+- **Logged:** 2026-04-13
+
+---
+
+`[S5]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/webhook.py
+- **Question:** Behavior on unhandled event types (e.g., invoice.paid).
+- **Agent default:** Mark as processed and return 200 with `status: ignored`. Prevents Stripe from retrying events we don't care about. We can add new handlers later by extending `_HANDLERS` dict with no other code change.
+- **Logged:** 2026-04-13
+
+---
+
+`[S5]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/webhook.py — handle_dispute_opened
+- **Question:** What does charge.dispute.created do beyond alerting?
+- **Agent default:** Currently logs and writes debug row only. Session 6/7 will extend to: set purchase status to `disputed`, send Kyle alert, leave download link active (no auto-revoke). Matches playbook default. Flagged for Session 6.
+- **Logged:** 2026-04-13
+
+---
+
+`[S5]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/db.py — webhook_debug_log retention
+- **Question:** How long to retain webhook_debug_log rows?
+- **Agent default:** 30 days. Session 8 will add a housekeeping cron `cleanup_webhook_debug_log.py` that deletes rows older than 30 days. Matches playbook default.
+- **Logged:** 2026-04-13
+
+---
+
+`[S5]` `[Status: PENDING]` — **Manual webhook verification not yet performed.**
+- The webhook endpoint is deployed but cannot be tested live until Kyle (a) registers `https://sidebarcode-api.onrender.com/api/webhook` in the Stripe test dashboard subscribed to `checkout.session.completed`, `charge.refunded`, `charge.dispute.created`, `charge.dispute.closed`, (b) copies the signing secret (`whsec_...`) into Render env as `STRIPE_WEBHOOK_SECRET`, (c) triggers a test event from the Stripe CLI or the dashboard's "Send test webhook" button, and (d) confirms staging logs show signature verified. See post-commit instructions for the exact steps.
+- **Logged:** 2026-04-13
+
+---
+
 ### Session 4 — Mock catalog + Stripe Checkout
 
 `[S4]` `[Status: PENDING]`
