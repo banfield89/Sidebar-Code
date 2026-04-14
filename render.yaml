@@ -69,15 +69,18 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12"
-      - fromService:
+      - key: POSTMARK_API_TOKEN
+        fromService:
           type: web
           name: sidebarcode-api
           envVarKey: POSTMARK_API_TOKEN
-      - fromService:
+      - key: KYLE_ALERT_EMAIL
+        fromService:
           type: web
           name: sidebarcode-api
           envVarKey: KYLE_ALERT_EMAIL
-      - fromService:
+      - key: SQLITE_PATH
+        fromService:
           type: web
           name: sidebarcode-api
           envVarKey: SQLITE_PATH
@@ -93,19 +96,23 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12"
-      - fromService:
+      - key: R2_ACCOUNT_ID
+        fromService:
           type: web
           name: sidebarcode-api
           envVarKey: R2_ACCOUNT_ID
-      - fromService:
+      - key: R2_ACCESS_KEY_ID
+        fromService:
           type: web
           name: sidebarcode-api
           envVarKey: R2_ACCESS_KEY_ID
-      - fromService:
+      - key: R2_SECRET_ACCESS_KEY
+        fromService:
           type: web
           name: sidebarcode-api
           envVarKey: R2_SECRET_ACCESS_KEY
-      - fromService:
+      - key: R2_BUCKET
+        fromService:
           type: web
           name: sidebarcode-api
           envVarKey: R2_BUCKET
@@ -121,7 +128,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12"
-      - fromService:
+      - key: SQLITE_PATH
+        fromService:
           type: web
           name: sidebarcode-api
           envVarKey: SQLITE_PATH
