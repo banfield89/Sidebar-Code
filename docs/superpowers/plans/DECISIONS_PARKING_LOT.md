@@ -16,6 +16,62 @@
 
 *(Day-session agents append here as they encounter questions. Kyle edits in the evening.)*
 
+### Session 4 — Mock catalog + Stripe Checkout
+
+`[S4]` `[Status: PENDING]`
+- **File:** stripe-delivery/mock_catalog_index.yaml, stripe-delivery/api/catalog.py
+- **Question:** Spec uses `price` field (dollars). Stripe API needs cents. How to represent price in catalog YAML?
+- **Agent default:** Renamed to `price_cents` in mock_catalog_index.yaml (integer cents). Removes ambiguity. When SP1 ships the real CATALOG_INDEX.yaml, it should use the same `price_cents` convention or the catalog loader needs a conversion shim. Flagging for SP1 swap-in session.
+- **Logged:** 2026-04-13
+
+---
+
+`[S4]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/checkout.py
+- **Question:** Should Stripe Checkout collect phone number?
+- **Agent default:** Yes (`phone_number_collection: enabled=True`). Helpful for consulting tiers where Kyle may need to contact buyer outside email. Buyer can leave blank if they want. Matches playbook default.
+- **Logged:** 2026-04-13
+
+---
+
+`[S4]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/checkout.py
+- **Question:** Where to collect buyer IP?
+- **Agent default:** Read from `X-Forwarded-For` header (Render proxy injects this), fall back to `request.client.host`. Stored in Stripe Checkout Session metadata as `buyer_ip`. Matches playbook default.
+- **Logged:** 2026-04-13
+
+---
+
+`[S4]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/checkout.py
+- **Question:** ToS / Tech Overview version hashing — what file to hash?
+- **Agent default:** SHA-256 (truncated to 16 hex chars) of `terms.html` and `Product Catalog/shared/technology_overview.md` content at session creation time. If file missing, hash is "unknown" (and will be flagged in Session 7 Aemon review). The Tech Overview file may not exist yet — Aemon writes it during SP1.
+- **Logged:** 2026-04-13
+
+---
+
+`[S4]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/checkout.py
+- **Question:** Stripe Checkout success_url and cancel_url — where do they point?
+- **Agent default:** Computed at request time as `{SITE_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}` and `{SITE_BASE_URL}/cancel`. SITE_BASE_URL env var if set, else falls back to the request's own scheme+host. The /success and /cancel HTML pages are Phase 4 of the spec and not built yet — buyers redirected after a test purchase will get 404s, but the Stripe dashboard will show the completed transaction. This is acceptable for Session 4 verification.
+- **Logged:** 2026-04-13
+
+---
+
+`[S4]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/checkout.py
+- **Question:** Stripe automatic_tax — enable now or later?
+- **Agent default:** Enabled (`automatic_tax: enabled=True`). Kyle already activated Stripe Tax during Session 1 external account setup. This makes sales tax appear in test purchases, which is the more realistic test surface.
+- **Logged:** 2026-04-13
+
+---
+
+`[S4]` `[Status: PENDING]` — **Manual Stripe verification not yet performed.**
+- The `sync_stripe_catalog.py` script and the live POST /api/checkout test require STRIPE_SECRET_KEY which the agent does not have in its session. Kyle must run these locally before declaring Session 4 fully complete. Step 1: `cd stripe-delivery && python scripts/sync_stripe_catalog.py --dry-run` then drop `--dry-run` to actually create products. Step 2: hit deployed `/api/checkout` with curl/Postman and complete a test purchase using card 4242 4242 4242 4242. See post-commit instructions for the exact commands.
+- **Logged:** 2026-04-13
+
+---
+
 ### Session 3 — Zip builder + R2 upload + signed URLs
 
 `[S3]` `[Status: PENDING]`

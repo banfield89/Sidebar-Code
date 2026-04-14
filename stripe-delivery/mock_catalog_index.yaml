@@ -1,0 +1,42 @@
+# Sidebar Code mock catalog — Session 4
+#
+# This file replaces the real CATALOG_INDEX.yaml during Sessions 4-8. It
+# contains 3 fake tiers covering both delivery types so the agent can build
+# and test the full checkout and delivery pipeline before SP1 ships real
+# product content. The real catalog will be swapped in during the post-SP1
+# finishing session by setting CATALOG_INDEX_PATH in Render.
+#
+# Schema: mirrors spec Section 3, with one rename — the spec's `price` field
+# is renamed `price_cents` here for unambiguous Stripe API integration
+# (Stripe's amount field is always integer cents). See Session 4 parking lot
+# entry for the rationale.
+
+products:
+  - tier_id: mock_parser_trial
+    stripe_product_name: "Mock Parser Trial"
+    stripe_product_description: "Test fixture tier for SP2 build-out. Not for sale."
+    price_cents: 197
+    currency: usd
+    delivery_type: zip_download
+    delivery_source: "stripe-delivery/tests/fixtures/dummy_deliverable/"
+    tax_code: "txcd_10502000"  # Digital goods / downloadable software
+
+consulting:
+  - tier_id: mock_consulting_foundation
+    stripe_product_name: "Mock Consulting Foundation"
+    stripe_product_description: "Test fixture consulting tier for SP2 build-out. Not for sale."
+    price_cents: 2500
+    currency: usd
+    delivery_type: notify_kyle
+    scheduling_link: "https://cal.com/kylebanfield/foundation"
+    tax_code: "txcd_20030000"  # Professional services
+
+custom_workflows:
+  - tier_id: mock_workflow_single
+    stripe_product_name: "Mock Single Workflow"
+    stripe_product_description: "Test fixture workflow tier for SP2 build-out. Not for sale."
+    price_cents: 5000
+    currency: usd
+    delivery_type: notify_kyle
+    scheduling_link: "https://cal.com/kylebanfield/workflow"
+    tax_code: "txcd_20030000"  # Professional services

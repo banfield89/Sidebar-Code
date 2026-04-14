@@ -18,10 +18,10 @@ def test_health_ok() -> None:
     assert "env" in payload
 
 
-def test_checkout_returns_501() -> None:
+def test_checkout_validates_body() -> None:
+    """Checkout is implemented in Session 4. Empty body should now 422."""
     response = client.post("/api/checkout", json={})
-    assert response.status_code == 501
-    assert "not yet implemented" in response.json()["detail"].lower()
+    assert response.status_code == 422
 
 
 def test_webhook_returns_501() -> None:
