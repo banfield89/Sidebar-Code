@@ -16,6 +16,70 @@
 
 *(Day-session agents append here as they encounter questions. Kyle edits in the evening.)*
 
+### Session 6 — Purchases, leads, refund handler
+
+`[S6]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/db.py — schema
+- **Question:** Spec Section 9 only defines `leads` and `lead_events` schemas; the playbook also references `purchases`, `delivery_failures`, `tos_versions`, `tech_overview_versions`. What columns?
+- **Agent default:** Designed `purchases` based on Section 5 of the spec (paragraph "Insert purchase row in SQLite: ..."). Columns: purchase_id, tier_id, category, delivery_type, stripe_session_id (UNIQUE), stripe_payment_intent_id, stripe_charge_id, buyer_email/name/phone, amount_cents, currency, status, zip_object_key, download_url_expires_at, download_attempts, tos_version_hash, tech_overview_version_hash, buyer_ip, created_at, updated_at. `delivery_failures` is FK to purchases with error_msg + traceback. `tos_versions` and `tech_overview_versions` are minimal: version_hash + first_seen_at. Full content reconstructable from git history.
+- **Logged:** 2026-04-13
+
+---
+
+`[S6]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/crm.py — insert_purchase idempotency
+- **Question:** What's the idempotency key for inserts? Stripe may deliver checkout.session.completed more than once (network retries before mark_processed runs).
+- **Agent default:** `stripe_session_id` is UNIQUE in the schema and `insert_purchase` short-circuits if a row with that session_id already exists. Returns the existing Purchase object. Same for `insert_lead` keyed on (source='stripe_purchase', stripe_charge_id).
+- **Logged:** 2026-04-13
+
+---
+
+`[S6]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/crm.py — Lead.status default
+- **Question:** Default lead status for stripe-sourced leads — `new` or `qualified`?
+- **Agent default:** `qualified` (they paid, they're serious). Matches playbook default. Web-inquiry leads (Session 4 of SP3) will use `new`.
+- **Logged:** 2026-04-13
+
+---
+
+`[S6]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/crm.py — minimal lead capture
+- **Question:** Should consulting lead rows include anything from Stripe metadata beyond email/name/phone?
+- **Agent default:** No, minimal capture. Steward enriches later in SP3 by reading from the `notes` JSON column which we leave NULL on initial insert. Matches playbook default.
+- **Logged:** 2026-04-13
+
+---
+
+`[S6]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/webhook.py — refund lookup chain
+- **Question:** charge.refunded events arrive with charge.id and charge.payment_intent. checkout.session.completed only stores payment_intent at creation time (charge_id may not exist yet). How to link?
+- **Agent default:** Multi-step lookup: try `get_purchase_by_charge_id(charge_id)` first; if None, fall back to `get_purchase_by_payment_intent(charge.payment_intent)`. On match via payment_intent, backfill the charge_id on the purchase row. Robust against Stripe API timing variance.
+- **Logged:** 2026-04-13
+
+---
+
+`[S6]` `[Status: PENDING]`
+- **File:** stripe-delivery/api/webhook.py — refund for unknown charge
+- **Question:** What if charge.refunded fires but no purchase row matches?
+- **Agent default:** Log warning, return 200 (so Stripe stops retrying). This happens when refunds come in for charges that pre-date the SP2 service (e.g. test mode cleanup) and is not an error.
+- **Logged:** 2026-04-13
+
+---
+
+`[S6]` `[Status: PENDING]`
+- **File:** stripe-delivery/scripts/backup_sqlite.py
+- **Question:** Backup destination structure inside R2.
+- **Agent default:** Object key prefix `sqlite-backups/sidebarcode-{ISO_TIMESTAMP}.db`. Retention: 30 days, pruned at end of each backup run by listing the prefix and deleting objects with `LastModified` older than cutoff. Uses `sqlite3.Connection.backup()` for consistent snapshots even if the service is mid-write.
+- **Logged:** 2026-04-13
+
+---
+
+`[S6]` `[Status: PENDING]` — **Manual end-to-end purchase verification not yet performed.**
+- The webhook orchestration is wired and unit-tested but Kyle should confirm that a real test purchase against staging actually writes a purchases row to the live SQLite at `/var/data/sidebarcode.db` on Render, and that a test refund updates it. See post-commit instructions for the SQL queries to run via Render's Shell tab.
+- **Logged:** 2026-04-13
+
+---
+
 ### Session 5 — Webhook handler + signature verification + idempotency
 
 `[S5]` `[Status: PENDING]`

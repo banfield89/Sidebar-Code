@@ -96,4 +96,94 @@ CREATE INDEX IF NOT EXISTS idx_webhook_debug_log_event_type
 
 CREATE INDEX IF NOT EXISTS idx_webhook_debug_log_created_at
     ON webhook_debug_log(created_at);
+
+-- Session 6: purchases, leads, refunds, audit trail
+
+CREATE TABLE IF NOT EXISTS purchases (
+    purchase_id              TEXT PRIMARY KEY,
+    tier_id                  TEXT NOT NULL,
+    category                 TEXT NOT NULL,
+    delivery_type            TEXT NOT NULL,
+    stripe_session_id        TEXT NOT NULL UNIQUE,
+    stripe_payment_intent_id TEXT,
+    stripe_charge_id         TEXT,
+    buyer_email              TEXT NOT NULL,
+    buyer_name               TEXT,
+    buyer_phone              TEXT,
+    amount_cents             INTEGER NOT NULL,
+    currency                 TEXT NOT NULL,
+    status                   TEXT NOT NULL,
+    zip_object_key           TEXT,
+    download_url_expires_at  TEXT,
+    download_attempts        INTEGER NOT NULL DEFAULT 0,
+    tos_version_hash         TEXT,
+    tech_overview_version_hash TEXT,
+    buyer_ip                 TEXT,
+    created_at               TEXT NOT NULL,
+    updated_at               TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_purchases_charge_id
+    ON purchases(stripe_charge_id);
+CREATE INDEX IF NOT EXISTS idx_purchases_payment_intent
+    ON purchases(stripe_payment_intent_id);
+CREATE INDEX IF NOT EXISTS idx_purchases_status
+    ON purchases(status);
+CREATE INDEX IF NOT EXISTS idx_purchases_tier_id
+    ON purchases(tier_id);
+
+CREATE TABLE IF NOT EXISTS leads (
+    lead_id          TEXT PRIMARY KEY,
+    tier_id          TEXT NOT NULL,
+    source           TEXT NOT NULL,
+    status           TEXT NOT NULL,
+    buyer_email      TEXT NOT NULL,
+    buyer_name       TEXT,
+    buyer_phone      TEXT,
+    buyer_firm       TEXT,
+    intake_payload   TEXT,
+    stripe_charge_id TEXT,
+    amount_cents     INTEGER,
+    created_at       TEXT NOT NULL,
+    next_action_at   TEXT,
+    notes            TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
+CREATE INDEX IF NOT EXISTS idx_leads_source ON leads(source);
+CREATE INDEX IF NOT EXISTS idx_leads_charge_id ON leads(stripe_charge_id);
+
+CREATE TABLE IF NOT EXISTS lead_events (
+    event_id    TEXT PRIMARY KEY,
+    lead_id     TEXT NOT NULL,
+    event_type  TEXT NOT NULL,
+    event_data  TEXT,
+    created_at  TEXT NOT NULL,
+    FOREIGN KEY (lead_id) REFERENCES leads(lead_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_lead_events_lead_id
+    ON lead_events(lead_id);
+
+CREATE TABLE IF NOT EXISTS delivery_failures (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    purchase_id TEXT NOT NULL,
+    error_msg   TEXT NOT NULL,
+    traceback   TEXT,
+    created_at  TEXT NOT NULL,
+    FOREIGN KEY (purchase_id) REFERENCES purchases(purchase_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_delivery_failures_purchase
+    ON delivery_failures(purchase_id);
+
+CREATE TABLE IF NOT EXISTS tos_versions (
+    version_hash    TEXT PRIMARY KEY,
+    first_seen_at   TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tech_overview_versions (
+    version_hash    TEXT PRIMARY KEY,
+    first_seen_at   TEXT NOT NULL
+);
 """

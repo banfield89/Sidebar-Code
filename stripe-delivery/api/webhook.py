@@ -19,11 +19,13 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import stripe
 from fastapi import APIRouter, HTTPException, Request, status
 
+from api import crm, delivery
+from api.catalog import load_catalog_index
 from api.db import get_connection
 
 logger = logging.getLogger(__name__)
@@ -128,22 +130,130 @@ def _to_serializable(obj: Any) -> Any:
     return obj
 
 
+def _resolve_buyer_email(session: Any) -> str:
+    """Pull the buyer email from a Stripe session, with fallbacks."""
+    customer_details = _safe(session, "customer_details")
+    if customer_details:
+        email = _safe(customer_details, "email")
+        if email:
+            return email
+    direct = _safe(session, "customer_email")
+    if direct:
+        return direct
+    return "unknown@unknown.invalid"
+
+
+def _resolve_buyer_name(session: Any) -> Optional[str]:
+    customer_details = _safe(session, "customer_details")
+    if customer_details:
+        return _safe(customer_details, "name")
+    return None
+
+
+def _resolve_buyer_phone(session: Any) -> Optional[str]:
+    customer_details = _safe(session, "customer_details")
+    if customer_details:
+        return _safe(customer_details, "phone")
+    return None
+
+
 def handle_checkout_completed(event: stripe.Event) -> None:
     session = event["data"]["object"]
+    session_id = _safe(session, "id") or "unknown"
     metadata = _safe(session, "metadata") or {}
-    tier_id = _safe(metadata, "tier_id", "unknown") or "unknown"
+    tier_id = _safe(metadata, "tier_id") or "unknown"
+
     logger.info(
         "checkout.session.completed received — tier_id=%s session_id=%s",
         tier_id,
-        _safe(session, "id"),
+        session_id,
     )
     _write_debug_log(event["id"], event["type"], _to_serializable(session))
+
+    if tier_id == "unknown":
+        logger.warning("checkout.session.completed has no tier_id metadata; skipping")
+        return
+
+    catalog = load_catalog_index()
+    try:
+        tier = catalog.get(tier_id)
+    except KeyError:
+        logger.error("checkout.session.completed for unknown tier_id=%s", tier_id)
+        return
+
+    purchase = crm.insert_purchase(
+        tier_id=tier.tier_id,
+        category=tier.category,
+        delivery_type=tier.delivery_type,
+        stripe_session_id=session_id,
+        stripe_payment_intent_id=_safe(session, "payment_intent"),
+        buyer_email=_resolve_buyer_email(session),
+        buyer_name=_resolve_buyer_name(session),
+        buyer_phone=_resolve_buyer_phone(session),
+        amount_cents=int(_safe(session, "amount_total") or tier.price_cents),
+        currency=(_safe(session, "currency") or tier.currency),
+        status=(
+            crm.PurchaseStatus.AWAITING_DELIVERY
+            if tier.delivery_type == "zip_download"
+            else crm.PurchaseStatus.AWAITING_DELIVERY
+        ),
+        tos_version_hash=_safe(metadata, "tos_version_hash"),
+        tech_overview_version_hash=_safe(metadata, "tech_overview_version_hash"),
+        buyer_ip=_safe(metadata, "buyer_ip"),
+    )
+
+    if tier.delivery_type == "zip_download":
+        delivery.build_and_deliver_zip(purchase)
+    else:  # notify_kyle
+        lead = crm.insert_lead(
+            tier_id=tier.tier_id,
+            source="stripe_purchase",
+            buyer_email=purchase.buyer_email,
+            buyer_name=purchase.buyer_name,
+            buyer_phone=purchase.buyer_phone,
+            stripe_charge_id=purchase.stripe_charge_id,
+            amount_cents=purchase.amount_cents,
+            status=crm.LeadStatus.QUALIFIED,
+        )
+        crm.record_lead_event(lead.lead_id, "created", {"purchase_id": purchase.purchase_id})
+        delivery.notify_kyle_new_purchase(purchase, lead)
 
 
 def handle_refund(event: stripe.Event) -> None:
     charge = event["data"]["object"]
-    logger.info("charge.refunded received — charge_id=%s", _safe(charge, "id"))
+    charge_id = _safe(charge, "id") or "unknown"
+    payment_intent_id = _safe(charge, "payment_intent")
+    logger.info("charge.refunded received — charge_id=%s", charge_id)
     _write_debug_log(event["id"], event["type"], _to_serializable(charge))
+
+    purchase = crm.get_purchase_by_charge_id(charge_id)
+    if purchase is None and payment_intent_id:
+        purchase = crm.get_purchase_by_payment_intent(payment_intent_id)
+    if purchase is None:
+        logger.warning("charge.refunded for unknown charge_id=%s", charge_id)
+        return
+
+    # If we found purchase via payment_intent, backfill the charge id.
+    if purchase.stripe_charge_id != charge_id:
+        crm.update_purchase_status(
+            purchase.purchase_id,
+            purchase.status,
+            stripe_charge_id=charge_id,
+        )
+
+    if purchase.delivery_type == "zip_download" and purchase.zip_object_key:
+        try:
+            delivery.delete_r2_object(purchase.zip_object_key)
+        except Exception:
+            logger.exception("failed to delete R2 object on refund — continuing")
+
+    crm.update_purchase_status(
+        purchase.purchase_id,
+        crm.PurchaseStatus.REFUNDED,
+        download_url_expires_at=datetime.now(timezone.utc).isoformat(),
+    )
+
+    delivery.notify_kyle_refund(purchase)
 
 
 def handle_dispute_opened(event: stripe.Event) -> None:

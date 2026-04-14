@@ -228,3 +228,40 @@ def delete_r2_object(object_key: str, *, bucket: Optional[str] = None) -> None:
     bucket_name = _resolve_bucket(bucket)
     client = _r2_client()
     client.delete_object(Bucket=bucket_name, Key=object_key)
+
+
+# ---------------------------------------------------------------------------
+# Session 7 orchestration stubs — wired in Session 7 to Postmark
+# ---------------------------------------------------------------------------
+def build_and_deliver_zip(purchase) -> None:
+    """Stub: in Session 7 this will resolve catalog → build zip → upload →
+    sign URL → write fields to purchase row → send Postmark email.
+
+    For Session 6, just logs that delivery would have happened so the
+    end-to-end webhook → purchase row → delivery handoff is wired and
+    testable without Postmark dependencies.
+    """
+    logger.info(
+        "build_and_deliver_zip STUB called — purchase_id=%s tier_id=%s",
+        getattr(purchase, "purchase_id", "unknown"),
+        getattr(purchase, "tier_id", "unknown"),
+    )
+
+
+def notify_kyle_new_purchase(purchase, lead) -> None:
+    """Stub: Session 7 sends Postmark emails to Kyle and the buyer."""
+    logger.info(
+        "notify_kyle_new_purchase STUB called — purchase_id=%s lead_id=%s tier_id=%s",
+        getattr(purchase, "purchase_id", "unknown"),
+        getattr(lead, "lead_id", "unknown"),
+        getattr(purchase, "tier_id", "unknown"),
+    )
+
+
+def notify_kyle_refund(purchase) -> None:
+    """Stub: Session 7 sends Postmark refund alert to Kyle."""
+    logger.info(
+        "notify_kyle_refund STUB called — purchase_id=%s tier_id=%s",
+        getattr(purchase, "purchase_id", "unknown"),
+        getattr(purchase, "tier_id", "unknown"),
+    )
